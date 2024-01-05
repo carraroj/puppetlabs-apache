@@ -536,7 +536,7 @@ describe 'apache::vhost', type: :define do
             }
           end
 
-          it { is_expected.to compile }
+          it { is_expected.to compile.with_all_deps }
           it { is_expected.not_to contain_file('/var/www/foo') }
           it { is_expected.to contain_class('apache::mod::ssl') }
 
@@ -618,7 +618,6 @@ describe 'apache::vhost', type: :define do
           it { is_expected.to contain_concat__fragment('rspec.example.com-itk') }
           it { is_expected.to contain_concat__fragment('rspec.example.com-fallbackresource') }
 
-          # rubocop:disable RSpec/ExampleLength
           it {
             expect(subject).to contain_concat__fragment('rspec.example.com-directories')
               .with_content(%r{^\s+<Proxy "\*">$})
