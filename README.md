@@ -39,6 +39,7 @@
 [`apache::mod::auth_mellon`]: https://forge.puppet.com/modules/puppetlabs/apache/reference#apachemodauth_mellon
 [`apache::mod::authn_dbd`]: https://forge.puppet.com/modules/puppetlabs/apache/reference#apachemodauthn_dbd
 [`apache::mod::authnz_ldap`]: https://forge.puppet.com/modules/puppetlabs/apache/reference#apachemodauthnz_ldap
+[`apache::mod::authz_core`]: https://forge.puppet.com/modules/puppetlabs/apache/reference#apachemodauthz_core
 [`apache::mod::cluster`]: https://forge.puppet.com/modules/puppetlabs/apache/reference#apachemodcluster
 [`apache::mod::data]: https://forge.puppet.com/modules/puppetlabs/apache/reference#apachemoddata
 [`apache::mod::disk_cache`]: https://forge.puppet.com/modules/puppetlabs/apache/reference#apachemoddisk_cache
@@ -157,6 +158,7 @@
 [`mod_authnz_external`]: https://github.com/phokz/mod-auth-external
 [`mod_auth_dbd`]: http://httpd.apache.org/docs/current/mod/mod_authn_dbd.html
 [`mod_auth_mellon`]: https://github.com/UNINETT/mod_auth_mellon
+[`mod_authz_core`]: https://httpd.apache.org/docs/current/mod/mod_authz_core.html
 [`mod_dbd`]: http://httpd.apache.org/docs/current/mod/mod_dbd.html
 [`mod_disk_cache`]: https://httpd.apache.org/docs/2.2/mod/mod_disk_cache.html
 [`mod_dumpio`]: https://httpd.apache.org/docs/2.4/mod/mod_dumpio.html
@@ -236,6 +238,7 @@
 [`ssl`]: https://forge.puppet.com/modules/puppetlabs/apache/reference#ssl
 [`ssl_cert`]: https://forge.puppet.com/modules/puppetlabs/apache/reference#ssl_cert
 [`ssl_compression`]: https://forge.puppet.com/modules/puppetlabs/apache/reference#ssl_compression
+[`ssl_cipher`]: https://forge.puppet.com/modules/puppetlabs/apache/reference#ssl_compression
 [`ssl_key`]: https://forge.puppet.com/modules/puppetlabs/apache/reference#ssl_key
 [`StartServers`]: https://httpd.apache.org/docs/current/mod/mpm_common.html#startservers
 [supported operating system]: https://forge.puppet.com/supported#puppet-supported-modules-compatibility-matrix
@@ -271,7 +274,8 @@
     - [Load balancing with exported and non-exported resources][Load balancing examples]
 4. [Reference - An under-the-hood peek at what the module is doing and how][Reference]
 5. [Limitations - OS compatibility, etc.][Limitations]
-6. [Development - Guide for contributing to the module][Development]
+6. [License][License]
+7. [Development - Guide for contributing to the module][Development]
     
 <a id="module-description"></a>
 ## Module description
@@ -657,6 +661,22 @@ class { 'apache::mod::ssl':
 }
 ```
 
+You can pass the SSL Ciphers to override the default ciphers.
+```puppet
+class { 'apache::mod::ssl':
+  ssl_cipher => 'PROFILE=SYSTEM',
+}
+```
+
+You can also pass the different [`ssl_cipher`][] for different SSL protocols. This allows you to fine-tune the ciphers based on the specific SSL/TLS protocol version being used. 
+```puppet
+class { 'apache::mod::ssl':
+  ssl_cipher => {
+    'TLSv1.1' => 'RSA:!EXP:!NULL:+HIGH:+MEDIUM'
+  },
+}
+```
+
 Note that some modules have prerequisites, which are documented in their references under [`apache::mod::<MODULE NAME>`][].
 
 #### Installing arbitrary modules
@@ -841,8 +861,12 @@ COVERAGE=yes bundle exec rake parallel_spec
 Acceptance tests for this module leverage [puppet_litmus](https://github.com/puppetlabs/puppet_litmus).
 To run the acceptance tests follow the instructions [here](https://puppetlabs.github.io/litmus/Running-acceptance-tests.html). You can also find a tutorial and walkthrough of using Litmus and the PDK on [YouTube](https://www.youtube.com/watch?v=FYfR7ZEGHoE).
 
+## License
+
+This codebase is licensed under the Apache2.0 licensing, however due to the nature of the codebase the open source dependencies may also use a combination of [AGPL](https://opensource.org/license/agpl-v3/), [BSD-2](https://opensource.org/license/bsd-2-clause/), [BSD-3](https://opensource.org/license/bsd-3-clause/), [GPL2.0](https://opensource.org/license/gpl-2-0/), [LGPL](https://opensource.org/license/lgpl-3-0/), [MIT](https://opensource.org/license/mit/) and [MPL](https://opensource.org/license/mpl-2-0/) Licensing.
+
 ### Development Support
-If you run into an issue with this module, or if you would like to request a feature, please [file a ticket](https://tickets.puppetlabs.com/browse/MODULES/).
+If you run into an issue with this module, or if you would like to request a feature, please [file a ticket](https://github.com/puppetlabs/puppetlabs-apache/issues).
 Every Monday the Puppet IA Content Team has [office hours](https://puppet.com/community/office-hours) in the [Puppet Community Slack](http://slack.puppet.com/), alternating between an EMEA friendly time (1300 UTC) and an Americas friendly time (0900 Pacific, 1700 UTC).
 
 If you have problems getting this module up and running, please [contact Support](http://puppetlabs.com/services/customer-support).

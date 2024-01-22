@@ -105,11 +105,6 @@
 #   ```
 #   **Note**: SSL virtual hosts only respond to HTTPS queries.
 #
-# @param default_type
-#   _Apache 2.2 only_. Sets the MIME `content-type` sent if the server cannot otherwise 
-#   determine an appropriate `content-type`. This directive is deprecated in Apache 2.4 and 
-#   newer, and is only for backwards compatibility in configuration files.
-#
 # @param default_vhost
 #   Configures a default virtual host when the class is declared.<br />
 #   To configure customized virtual hosts, set this parameter's 
@@ -423,10 +418,6 @@
 #
 # @param ip
 #   Specifies the ip address
-#
-# @param purge_vdir
-#   Removes all other Apache configs and virtual hosts.<br />
-#   > **Note**: This parameter is deprecated in favor of the `purge_configs` parameter.<br />
 # 
 # @param conf_enabled
 #   Whether the additional config files in `/etc/apache2/conf-enabled` should be managed.
@@ -459,7 +450,7 @@
 class apache (
   String $apache_name                                                        = $apache::params::apache_name,
   String $service_name                                                       = $apache::params::service_name,
-  Variant[Array, Boolean] $default_mods                                      = true,
+  Variant[Array[String[1]], Boolean] $default_mods                           = true,
   Boolean $default_vhost                                                     = true,
   Optional[String] $default_charset                                          = undef,
   Boolean $default_confd_files                                               = true,
@@ -472,7 +463,6 @@ class apache (
   Optional[Stdlib::Absolutepath] $default_ssl_crl                            = undef,
   Optional[String] $default_ssl_crl_check                                    = undef,
   Boolean $default_ssl_reload_on_change                                      = false,
-  String $default_type                                                       = 'none',
   Optional[Variant[Array, String]] $dev_packages                             = $apache::params::dev_packages,
   Optional[String] $ip                                                       = undef,
   Boolean $service_enable                                                    = true,
@@ -481,7 +471,6 @@ class apache (
   Optional[String] $service_restart                                          = undef,
   Boolean $purge_configs                                                     = true,
   Optional[Boolean] $purge_vhost_dir                                         = undef,
-  Boolean $purge_vdir                                                        = false,
   Optional[String[1]] $serveradmin                                           = undef,
   Apache::OnOff $sendfile                                                    = 'On',
   Optional[Apache::OnOff] $ldap_verify_server_cert                           = undef,
@@ -599,17 +588,9 @@ class apache (
     service_restart => $service_restart,
   }
 
-  # Deprecated backwards-compatibility
-  if $purge_vdir {
-    warning('Class[\'apache\'] parameter purge_vdir is deprecated in favor of purge_configs')
-    $purge_confd = $purge_vdir
-  } else {
-    $purge_confd = $purge_configs
-  }
-
   # Set purge vhostd appropriately
   if $purge_vhost_dir == undef {
-    $purge_vhostd = $purge_confd
+    $purge_vhostd = $purge_configs
   } else {
     $purge_vhostd = $purge_vhost_dir
   }
@@ -627,8 +608,8 @@ class apache (
   file { $confd_dir:
     ensure  => directory,
     recurse => true,
-    purge   => $purge_confd,
-    force   => $purge_confd,
+    purge   => $purge_configs,
+    force   => $purge_configs,
     notify  => Class['Apache::Service'],
     require => Package['httpd'],
   }
@@ -637,8 +618,8 @@ class apache (
     file { $conf_enabled:
       ensure  => directory,
       recurse => true,
-      purge   => $purge_confd,
-      force   => $purge_confd,
+      purge   => $purge_configs,
+      force   => $purge_configs,
       notify  => Class['Apache::Service'],
       require => Package['httpd'],
     }
@@ -727,7 +708,7 @@ class apache (
   }
   concat::fragment { 'Apache ports header':
     target  => $ports_file,
-    content => template('apache/ports_header.erb'),
+    content => epp('apache/ports_header.epp'),
   }
 
   if $apache::conf_dir and $apache::params::conf_file {
@@ -782,10 +763,55 @@ class apache (
     # - $server_signature
     # - $trace_enable
     # - $root_directory_secured
+    $parameters = {
+      'server_tokens'           => $server_tokens,
+      'server_signature'        => $server_signature,
+      'trace_enable'            => $trace_enable,
+      'servername'              => $servername,
+      'server_root'             => $server_root,
+      'serveradmin'             => $serveradmin,
+      'pidfile'                 => $pidfile,
+      'timeout'                 => $timeout,
+      'keepalive'               => $keepalive,
+      'max_keepalive_requests'  => $max_keepalive_requests,
+      'keepalive_timeout'       => $keepalive_timeout,
+      'limitreqfieldsize'       => $limitreqfieldsize,
+      'limitreqfields'          => $limitreqfields,
+      'limitreqline'            => $limitreqline,
+      'http_protocol_options'   => $http_protocol_options,
+      'protocols'               => $protocols,
+      'protocols_honor_order'   => $protocols_honor_order,
+      'user'                    => $user,
+      'group'                   => $group,
+      'root_directory_options'  => $root_directory_options,
+      'root_directory_secured'  => $root_directory_secured,
+      'default_charset'         => $default_charset,
+      'hostname_lookups'        => $hostname_lookups,
+      'error_log'               => $error_log,
+      'logroot'                 => $logroot,
+      'log_level'               => $log_level,
+      'sendfile'                => $sendfile,
+      'allow_encoded_slashes'   => $allow_encoded_slashes,
+      'file_e_tag'              => $file_e_tag,
+      'use_canonical_name'      => $use_canonical_name,
+      'apxs_workaround'         => $apxs_workaround,
+      'mod_load_dir'            => $mod_load_dir,
+      'confd_dir'               => $confd_dir,
+      'vhost_load_dir'          => $vhost_load_dir,
+      'vhost_include_pattern'   => $vhost_include_pattern,
+      'ports_file'              => $ports_file,
+      'log_formats'             => $log_formats,
+      'conf_enabled'            => $conf_enabled,
+      'ldap_verify_server_cert' => $ldap_verify_server_cert,
+      'ldap_trusted_mode'       => $ldap_trusted_mode,
+      'error_documents'         => $error_documents,
+      'error_documents_path'    => $error_documents_path,
+    }
+
     file { "${apache::conf_dir}/${apache::params::conf_file}":
       ensure  => file,
       mode    => $apache::file_mode,
-      content => template($conf_template),
+      content => epp($conf_template, $parameters),
       notify  => Class['Apache::Service'],
       require => [Package['httpd'], Concat[$ports_file]],
     }

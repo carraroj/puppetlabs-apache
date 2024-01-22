@@ -301,6 +301,21 @@ describe 'apache::vhost', type: :define do
                   'ssl_verify_client' => 'optional',
                   'ssl_verify_depth' => 10
                 },
+                {
+                  'path' => '/private_2',
+                  'provider' => 'location',
+                  'mellon_enable' => 'auth',
+                  'mellon_sp_private_key_file' => '/etc/httpd/mellon/example.com_mellon.key',
+                  'mellon_sp_cert_file' => '/etc/httpd/mellon/example.com_mellon.crt',
+                  'mellon_sp_metadata_file' => '/etc/httpd/mellon/example.com_sp_mellon.xml',
+                  'mellon_idp_metadata_file' => '/etc/httpd/mellon/example.com_idp_mellon.xml',
+                  'mellon_set_env' => { 'isMemberOf' => 'urn:oid:1.3.6.1.4.1.5923.1.5.1.1' },
+                  'mellon_set_env_no_prefix' => { 'isMemberOf' => 'urn:oid:1.3.6.1.4.1.5923.1.5.1.1' },
+                  'mellon_user' => 'urn:oid:0.9.2342.19200300.100.1.1',
+                  'mellon_saml_response_dump' => 'Off',
+                  'mellon_cond' => ['isMemberOf "cn=example-access,ou=Groups,o=example,o=com" [MAP]'],
+                  'mellon_session_length' => '300'
+                },
               ],
               'error_log' => false,
               'error_log_file' => 'httpd_error_log',
@@ -309,16 +324,6 @@ describe 'apache::vhost', type: :define do
               'error_documents' => 'true',
               'fallbackresource' => '/index.php',
               'scriptalias' => '/usr/lib/cgi-bin',
-              'scriptaliases' => [
-                {
-                  'alias' => '/myscript',
-                  'path' => '/usr/share/myscript'
-                },
-                {
-                  'aliasmatch' => '^/foo(.*)',
-                  'path' => '/usr/share/fooscripts$1'
-                },
-              ],
               'limitreqfieldsize' => 8190,
               'limitreqfields' => 100,
               'limitreqline' => 8190,
@@ -531,7 +536,7 @@ describe 'apache::vhost', type: :define do
             }
           end
 
-          it { is_expected.to compile }
+          it { is_expected.to compile.with_all_deps }
           it { is_expected.not_to contain_file('/var/www/foo') }
           it { is_expected.to contain_class('apache::mod::ssl') }
 
@@ -588,7 +593,7 @@ describe 'apache::vhost', type: :define do
                                                                                 'notify' => 'Class[Apache::Service]')
           }
 
-          if os_facts[:os]['release']['major'].to_i >= 18 && os_facts[:os]['name'] == 'Ubuntu'
+          if os_facts[:os]['name'] == 'Ubuntu'
             it {
               expect(subject).to contain_file('30-rspec.example.com.conf symlink').with('ensure' => 'link',
                                                                                         'path' => "/etc/#{apache_name}/sites-enabled/30-rspec.example.com.conf")
@@ -721,7 +726,18 @@ describe 'apache::vhost', type: :define do
               .with_content(%r{^\s+GssapiUseSessions\sOn$})
               .with_content(%r{^\s+SSLVerifyClient\soptional$})
               .with_content(%r{^\s+SSLVerifyDepth\s10$})
+              .with_content(%r{^\s+MellonEnable\s"auth"$})
+              .with_content(%r{^\s+MellonSPPrivateKeyFile\s"/etc/httpd/mellon/example\.com_mellon\.key"$})
+              .with_content(%r{^\s+MellonSPCertFile\s"/etc/httpd/mellon/example\.com_mellon\.crt"$})
+              .with_content(%r{^\s+MellonSPMetadataFile\s"/etc/httpd/mellon/example\.com_sp_mellon\.xml"$})
+              .with_content(%r{^\s+MellonIDPMetadataFile\s"/etc/httpd/mellon/example\.com_idp_mellon\.xml"$})
+              .with_content(%r{^\s+MellonSetEnv\s"isMemberOf"\s"urn:oid:1\.3\.6\.1\.4\.1\.5923\.1\.5\.1\.1"$})
+              .with_content(%r{^\s+MellonSetEnvNoPrefix\s"isMemberOf"\s"urn:oid:1\.3\.6\.1\.4\.1\.5923\.1\.5\.1\.1"$})
+              .with_content(%r{^\s+MellonUser\s"urn:oid:0\.9\.2342\.19200300\.100\.1\.1"$})
+              .with_content(%r{^\s+MellonCond\sisMemberOf\s"cn=example-access,ou=Groups,o=example,o=com"\s\[MAP\]$})
+              .with_content(%r{^\s+MellonSessionLength\s"300"$})
           }
+          # rubocop:enable RSpec/ExampleLength
 
           it { is_expected.to contain_concat__fragment('rspec.example.com-additional_includes') }
 
@@ -760,7 +776,7 @@ describe 'apache::vhost', type: :define do
           }
 
           it { is_expected.to contain_concat__fragment('rspec.example.com-scriptalias') }
-          it { is_expected.to contain_concat__fragment('rspec.example.com-serveralias') }
+          it { is_expected.to contain_concat__fragment('rspec.example.com-serveralias').with_content(%r{^  ServerAlias test-example\.com$}) }
 
           it {
             expect(subject).to contain_concat__fragment('rspec.example.com-setenv')
@@ -1203,6 +1219,28 @@ describe 'apache::vhost', type: :define do
           it { is_expected.to contain_concat__fragment('Listen 127.0.0.1:8080') }
           it { is_expected.not_to contain_concat__fragment('NameVirtualHost 127.0.0.1:80') }
           it { is_expected.not_to contain_concat__fragment('NameVirtualHost 127.0.0.1:8080') }
+        end
+
+        describe 'serveraliases parameter' do
+          let(:params) { default_params.merge(serveraliases: serveraliases) }
+
+          context 'with a string' do
+            let(:serveraliases) { 'alias.example.com' }
+
+            it { is_expected.to compile.with_all_deps }
+            it { is_expected.to contain_concat__fragment('rspec.example.com-serveralias').with_content(%r{^  ServerAlias alias\.example\.com$}) }
+          end
+
+          context 'with an array' do
+            let(:serveraliases) { ['alias1.example.com', 'alias2.example.com'] }
+
+            it { is_expected.to compile.with_all_deps }
+            it do
+              expect(subject).to contain_concat__fragment('rspec.example.com-serveralias')
+                .with_content(%r{^  ServerAlias alias1\.example\.com$})
+                .with_content(%r{^  ServerAlias alias2\.example\.com$})
+            end
+          end
         end
 
         context 'vhost with multiple ip addresses, multiple ports' do
@@ -1993,8 +2031,7 @@ describe 'apache::vhost', type: :define do
             it { is_expected.to compile }
             it { is_expected.to contain_concat('25-rspec.example.com.conf') }
 
-            if (os_facts[:os]['family'] == 'RedHat' && os_facts[:os]['release']['major'].to_i > 6) ||
-               (os_facts[:os]['name'] == 'SLES' && os_facts[:os]['release']['major'].to_i > 11)
+            if os_facts[:os]['family'] == 'RedHat' || os_facts[:os]['name'] == 'SLES'
               it {
                 expect(subject).to contain_concat__fragment('rspec.example.com-directories').with(
                   content: %r{^\s+Require all granted$},

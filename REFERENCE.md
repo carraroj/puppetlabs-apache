@@ -24,6 +24,7 @@
 * [`apache::mod::authn_file`](#apache--mod--authn_file): Installs `mod_authn_file`.
 * [`apache::mod::authnz_ldap`](#apache--mod--authnz_ldap): Installs `mod_authnz_ldap`.
 * [`apache::mod::authnz_pam`](#apache--mod--authnz_pam): Installs `mod_authnz_pam`.
+* [`apache::mod::authz_core`](#apache--mod--authz_core): Installs `mod_authz_core`.
 * [`apache::mod::authz_groupfile`](#apache--mod--authz_groupfile): Installs `mod_authz_groupfile`
 * [`apache::mod::authz_user`](#apache--mod--authz_user): Installs `mod_authz_user`
 * [`apache::mod::autoindex`](#apache--mod--autoindex): Installs `mod_autoindex`
@@ -37,7 +38,6 @@
 * [`apache::mod::dav_svn`](#apache--mod--dav_svn): Installs and configures `mod_dav_svn`.
 * [`apache::mod::dbd`](#apache--mod--dbd): Installs `mod_dbd`.
 * [`apache::mod::deflate`](#apache--mod--deflate): Installs and configures `mod_deflate`.
-* [`apache::mod::dev`](#apache--mod--dev): Installs `mod_dev`.
 * [`apache::mod::dir`](#apache--mod--dir): Installs and configures `mod_dir`.
 * [`apache::mod::disk_cache`](#apache--mod--disk_cache): Installs and configures `mod_disk_cache`.
 * [`apache::mod::dumpio`](#apache--mod--dumpio): Installs and configures `mod_dumpio`.
@@ -60,6 +60,7 @@
 * [`apache::mod::lbmethod_bytraffic`](#apache--mod--lbmethod_bytraffic): Installs `lbmethod_bytraffic`.
 * [`apache::mod::lbmethod_heartbeat`](#apache--mod--lbmethod_heartbeat): Installs `lbmethod_heartbeat`.
 * [`apache::mod::ldap`](#apache--mod--ldap): Installs and configures `mod_ldap`.
+* [`apache::mod::log_forensic`](#apache--mod--log_forensic): Installs `mod_log_forensic`
 * [`apache::mod::lookup_identity`](#apache--mod--lookup_identity): Installs `mod_lookup_identity`
 * [`apache::mod::macro`](#apache--mod--macro): Installs `mod_macro`.
 * [`apache::mod::md`](#apache--mod--md): Installs and configures `mod_md`.
@@ -74,6 +75,7 @@ mod-pagespeed-stable package. The module does however require that the package b
 or be installable using the system's default package provider.  You should ensure that this
 pre-requisite is met or declaring `apache::mod::pagespeed` will cause the puppet run to fail.
 * [`apache::mod::passenger`](#apache--mod--passenger): Installs `mod_pasenger`.
+> **Note**: This module support Passenger 4.0.0 and higher.
 * [`apache::mod::perl`](#apache--mod--perl): Installs `mod_perl`.
 * [`apache::mod::peruser`](#apache--mod--peruser): Installs `mod_peruser`.
 * [`apache::mod::php`](#apache--mod--php): Installs `mod_php`.
@@ -85,6 +87,7 @@ pre-requisite is met or declaring `apache::mod::pagespeed` will cause the puppet
 * [`apache::mod::proxy_fcgi`](#apache--mod--proxy_fcgi): Installs `mod_proxy_fcgi`.
 * [`apache::mod::proxy_html`](#apache--mod--proxy_html): Installs `mod_proxy_html`.
 * [`apache::mod::proxy_http`](#apache--mod--proxy_http): Installs `mod_proxy_http`.
+* [`apache::mod::proxy_http2`](#apache--mod--proxy_http2): Installs `mod_proxy_http2`.
 * [`apache::mod::proxy_wstunnel`](#apache--mod--proxy_wstunnel): Installs `mod_proxy_wstunnel`.
 * [`apache::mod::python`](#apache--mod--python): Installs and configures `mod_python`.
 * [`apache::mod::remoteip`](#apache--mod--remoteip): Installs and configures `mod_remoteip`.
@@ -119,11 +122,7 @@ pre-requisite is met or declaring `apache::mod::pagespeed` will cause the puppet
 * `apache::mod::ssl::reload`: Manages the puppet_ssl folder for ssl file copies, which is needed to track changes for reloading service on changes
 * `apache::package`: Installs an Apache MPM.
 * `apache::params`: This class manages Apache parameters
-* `apache::php`: This class installs PHP for Apache.
-* `apache::proxy`: This class enabled the proxy module for Apache.
-* `apache::python`: This class installs Python for Apache
 * `apache::service`: Installs and configures Apache service.
-* `apache::ssl`: This class installs Apache SSL capabilities
 * `apache::version`: Try to automatically detect the version by OS
 
 ### Defined types
@@ -158,6 +157,7 @@ outside of the defaults.
 ### Functions
 
 * [`apache::apache_pw_hash`](#apache--apache_pw_hash): DEPRECATED.  Use the function [`apache::pw_hash`](#apachepw_hash) instead.
+* [`apache::authz_core_config`](#apache--authz_core_config): Function to generate the authz_core configuration directives.
 * [`apache::bool2httpd`](#apache--bool2httpd): Transform a supposed boolean to On or Off. Passes all other values through.
 * [`apache::pw_hash`](#apache--pw_hash): Hashes a password in a format suitable for htpasswd files read by apache.
 * [`apache_pw_hash`](#apache_pw_hash): DEPRECATED.  Use the namespaced function [`apache::pw_hash`](#apachepw_hash) instead.
@@ -168,6 +168,7 @@ outside of the defaults.
 * [`Apache::LogLevel`](#Apache--LogLevel): A string that conforms to the Apache `LogLevel` syntax.
 * [`Apache::ModProxyProtocol`](#Apache--ModProxyProtocol): Supported protocols / schemes by mod_proxy
 * [`Apache::OIDCSettings`](#Apache--OIDCSettings): https://github.com/zmartzone/mod_auth_openidc/blob/master/auth_openidc.conf
+* [`Apache::OnOff`](#Apache--OnOff): A string that is accepted in Apache config to turn something on or off
 * [`Apache::ServerTokens`](#Apache--ServerTokens): A string that conforms to the Apache `ServerTokens` syntax.
 * [`Apache::Vhost::Priority`](#Apache--Vhost--Priority): The priority on vhost
 * [`Apache::Vhost::ProxyPass`](#Apache--Vhost--ProxyPass): Struct representing reverse proxy configuration for an Apache vhost, used by the Apache::Vhost::Proxy defined resource type.
@@ -217,7 +218,6 @@ The following parameters are available in the `apache` class:
 * [`default_ssl_key`](#-apache--default_ssl_key)
 * [`default_ssl_reload_on_change`](#-apache--default_ssl_reload_on_change)
 * [`default_ssl_vhost`](#-apache--default_ssl_vhost)
-* [`default_type`](#-apache--default_type)
 * [`default_vhost`](#-apache--default_vhost)
 * [`dev_packages`](#-apache--dev_packages)
 * [`docroot`](#-apache--docroot)
@@ -279,7 +279,6 @@ The following parameters are available in the `apache` class:
 * [`limitreqfieldsize`](#-apache--limitreqfieldsize)
 * [`limitreqline`](#-apache--limitreqline)
 * [`ip`](#-apache--ip)
-* [`purge_vdir`](#-apache--purge_vdir)
 * [`conf_enabled`](#-apache--conf_enabled)
 * [`vhost_enable_dir`](#-apache--vhost_enable_dir)
 * [`manage_vhost_enable_dir`](#-apache--manage_vhost_enable_dir)
@@ -291,7 +290,7 @@ The following parameters are available in the `apache` class:
 
 ##### <a name="-apache--allow_encoded_slashes"></a>`allow_encoded_slashes`
 
-Data type: `Optional[Enum['on', 'off', 'nodecode']]`
+Data type: `Optional[Variant[Apache::OnOff, Enum['nodecode']]]`
 
 Sets the server default for the `AllowEncodedSlashes` declaration, which modifies the
 responses to URLs containing '\' and '/' characters. If not specified, this parameter omits
@@ -346,7 +345,7 @@ Default value: `true`
 
 ##### <a name="-apache--default_mods"></a>`default_mods`
 
-Data type: `Variant[Array, Boolean]`
+Data type: `Variant[Array[String[1]], Boolean]`
 
 Determines whether to configure and enable a set of default Apache modules depending on
 your operating system.<br />
@@ -463,16 +462,6 @@ apache::vhost { 'default-ssl':
 
 Default value: `false`
 
-##### <a name="-apache--default_type"></a>`default_type`
-
-Data type: `String`
-
-_Apache 2.2 only_. Sets the MIME `content-type` sent if the server cannot otherwise
-determine an appropriate `content-type`. This directive is deprecated in Apache 2.4 and
-newer, and is only for backwards compatibility in configuration files.
-
-Default value: `'none'`
-
 ##### <a name="-apache--default_vhost"></a>`default_vhost`
 
 Data type: `Boolean`
@@ -554,7 +543,7 @@ Default value: `$apache::params::http_protocol_options`
 
 ##### <a name="-apache--keepalive"></a>`keepalive`
 
-Data type: `Enum['On', 'Off']`
+Data type: `Apache::OnOff`
 
 Determines whether to enable persistent HTTP connections with the `KeepAlive` directive.
 If you set this to `On`, use the `keepalive_timeout` and `max_keepalive_requests` parameters
@@ -582,7 +571,7 @@ Default value: `$apache::params::max_keepalive_requests`
 
 ##### <a name="-apache--hostname_lookups"></a>`hostname_lookups`
 
-Data type: `Enum['Off', 'On', 'Double', 'off', 'on', 'double']`
+Data type: `Variant[Apache::OnOff, Enum['Double', 'double']]`
 
 This directive enables DNS lookups so that host names can be logged and passed to
 CGIs/SSIs in REMOTE_HOST.<br />
@@ -606,7 +595,7 @@ Default value: `undef`
 
 ##### <a name="-apache--ldap_verify_server_cert"></a>`ldap_verify_server_cert`
 
-Data type: `Optional[Enum['On', 'Off', 'on', 'off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Specifies whether to force the verification of a server certificate when establishing an SSL
 connection to the LDAP server.
@@ -825,7 +814,7 @@ Default value: `undef`
 
 ##### <a name="-apache--sendfile"></a>`sendfile`
 
-Data type: `Enum['On', 'Off', 'on', 'off']`
+Data type: `Apache::OnOff`
 
 Forces Apache to use the Linux kernel's `sendfile` support to serve static files, via the
 `EnableSendfile` directive.
@@ -859,7 +848,7 @@ Default value: `$apache::params::server_root`
 
 ##### <a name="-apache--server_signature"></a>`server_signature`
 
-Data type: `Variant[Enum['On', 'Off'], String]`
+Data type: `Variant[Apache::OnOff, String]`
 
 Configures a trailing footer line to display at the bottom of server-generated documents,
 such as error documents and output of certain Apache modules, via Apache's `ServerSignature`
@@ -932,7 +921,7 @@ Default value: `60`
 
 ##### <a name="-apache--trace_enable"></a>`trace_enable`
 
-Data type: `Enum['On', 'Off', 'extended']`
+Data type: `Variant[Apache::OnOff, Enum['extended']]`
 
 Controls how Apache handles `TRACE` requests (per RFC 2616) via the `TraceEnable` directive.
 
@@ -940,7 +929,7 @@ Default value: `'On'`
 
 ##### <a name="-apache--use_canonical_name"></a>`use_canonical_name`
 
-Data type: `Optional[Enum['On', 'on', 'Off', 'off', 'DNS', 'dns']]`
+Data type: `Optional[Variant[Apache::OnOff, Enum['DNS', 'dns']]]`
 
 Controls Apache's `UseCanonicalName` directive which controls how Apache handles
 self-referential URLs. If not specified, this parameter omits the declaration from the
@@ -1090,15 +1079,6 @@ Specifies the ip address
 
 Default value: `undef`
 
-##### <a name="-apache--purge_vdir"></a>`purge_vdir`
-
-Data type: `Boolean`
-
-Removes all other Apache configs and virtual hosts.<br />
-> **Note**: This parameter is deprecated in favor of the `purge_configs` parameter.<br />
-
-Default value: `false`
-
 ##### <a name="-apache--conf_enabled"></a>`conf_enabled`
 
 Data type: `Optional[Stdlib::Absolutepath]`
@@ -1234,7 +1214,7 @@ Default value: `$apache::params::icons_prefix`
 
 Installs `mod_apreq2`.
 
-* **Note** Unsupported platforms: CentOS: all; Debian: 8; OracleLinux: all; RedHat: all; Scientific: all; SLES: all; Ubuntu: all
+* **Note** Unsupported platforms: CentOS: all; OracleLinux: all; RedHat: all; Scientific: all; SLES: all; Ubuntu: all
 
 * **See also**
   * http://httpd.apache.org/apreq/docs/libapreq2/group__mod__apreq2.html
@@ -1757,6 +1737,14 @@ Installs `mod_authnz_pam`.
   * https://www.adelton.com/apache/mod_authnz_pam
     * for additional documentation.
 
+### <a name="apache--mod--authz_core"></a>`apache::mod::authz_core`
+
+Installs `mod_authz_core`.
+
+* **See also**
+  * https://httpd.apache.org/docs/current/mod/mod_authz_core.html
+    * for additional documentation.
+
 ### <a name="apache--mod--authz_groupfile"></a>`apache::mod::authz_groupfile`
 
 Installs `mod_authz_groupfile`
@@ -2041,12 +2029,6 @@ Default value:
   }
 ```
 
-### <a name="apache--mod--dev"></a>`apache::mod::dev`
-
-Installs `mod_dev`.
-
-* **Note** This module is deprecated. Please use `apache::dev`.
-
 ### <a name="apache--mod--dir"></a>`apache::mod::dir`
 
 Installs and configures `mod_dir`.
@@ -2172,7 +2154,7 @@ The following parameters are available in the `apache::mod::dumpio` class:
 
 ##### <a name="-apache--mod--dumpio--dump_io_input"></a>`dump_io_input`
 
-Data type: `Enum['Off', 'On', 'off', 'on']`
+Data type: `Apache::OnOff`
 
 Dump all input data to the error log
 
@@ -2180,7 +2162,7 @@ Default value: `'Off'`
 
 ##### <a name="-apache--mod--dumpio--dump_io_output"></a>`dump_io_output`
 
-Data type: `Enum['Off', 'On', 'off', 'on']`
+Data type: `Apache::OnOff`
 
 Dump all output data to the error log
 
@@ -3592,6 +3574,14 @@ The server location of the ldap status page.
 
 Default value: `'/ldap-status'`
 
+### <a name="apache--mod--log_forensic"></a>`apache::mod::log_forensic`
+
+Installs `mod_log_forensic`
+
+* **See also**
+  * https://httpd.apache.org/docs/current/mod/mod_log_forensic.html
+    * for additional documentation.
+
 ### <a name="apache--mod--lookup_identity"></a>`apache::mod::lookup_identity`
 
 Installs `mod_lookup_identity`
@@ -3612,7 +3602,7 @@ Installs `mod_macro`.
 
 Installs and configures `mod_md`.
 
-* **Note** Unsupported platforms: CentOS: 6, 7; Debian: 8, 9; OracleLinux: all; RedHat: 6, 7; Scientific: all; SLES: all; Ubuntu: 14, 16, 18
+* **Note** Unsupported platforms: CentOS: 6, 7; OracleLinux: all; RedHat: 6, 7; Scientific: all; SLES: all; Ubuntu: 18
 
 * **See also**
   * https://httpd.apache.org/docs/current/mod/mod_md.html
@@ -3661,7 +3651,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--md--md_base_server"></a>`md_base_server`
 
-Data type: `Optional[Enum['on', 'off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Control if base server may be managed or only virtual hosts.
 
@@ -3718,7 +3708,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--md--md_certificate_status"></a>`md_certificate_status`
 
-Data type: `Optional[Enum['on', 'off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Exposes public certificate information in JSON.
 
@@ -3767,7 +3757,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--md--md_must_staple"></a>`md_must_staple`
 
-Data type: `Optional[Enum['on', 'off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Control if new certificates carry the OCSP Must Staple flag.
 
@@ -3824,7 +3814,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--md--md_server_status"></a>`md_server_status`
 
-Data type: `Optional[Enum['on', 'off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Control if Managed Domain information is added to server-status.
 
@@ -3832,7 +3822,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--md--md_staple_others"></a>`md_staple_others`
 
-Data type: `Optional[Enum['on', 'off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Enable stapling for certificates not managed by mod_md.
 
@@ -3840,7 +3830,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--md--md_stapling"></a>`md_stapling`
 
-Data type: `Optional[Enum['on', 'off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Enable stapling for all or a particular MDomain.
 
@@ -4433,10 +4423,15 @@ The following parameters are available in the `apache::mod::passenger` class:
 * [`mod_package`](#-apache--mod--passenger--mod_package)
 * [`mod_package_ensure`](#-apache--mod--passenger--mod_package_ensure)
 * [`mod_path`](#-apache--mod--passenger--mod_path)
+* [`passenger_admin_panel_url`](#-apache--mod--passenger--passenger_admin_panel_url)
+* [`passenger_admin_panel_auth_type`](#-apache--mod--passenger--passenger_admin_panel_auth_type)
+* [`passenger_admin_panel_username`](#-apache--mod--passenger--passenger_admin_panel_username)
+* [`passenger_admin_panel_password`](#-apache--mod--passenger--passenger_admin_panel_password)
 * [`passenger_allow_encoded_slashes`](#-apache--mod--passenger--passenger_allow_encoded_slashes)
 * [`passenger_anonymous_telemetry_proxy`](#-apache--mod--passenger--passenger_anonymous_telemetry_proxy)
 * [`passenger_app_env`](#-apache--mod--passenger--passenger_app_env)
 * [`passenger_app_group_name`](#-apache--mod--passenger--passenger_app_group_name)
+* [`passenger_app_log_file`](#-apache--mod--passenger--passenger_app_log_file)
 * [`passenger_app_root`](#-apache--mod--passenger--passenger_app_root)
 * [`passenger_app_type`](#-apache--mod--passenger--passenger_app_type)
 * [`passenger_base_uri`](#-apache--mod--passenger--passenger_base_uri)
@@ -4455,6 +4450,7 @@ The following parameters are available in the `apache::mod::passenger` class:
 * [`passenger_disable_log_prefix`](#-apache--mod--passenger--passenger_disable_log_prefix)
 * [`passenger_disable_security_update_check`](#-apache--mod--passenger--passenger_disable_security_update_check)
 * [`passenger_enabled`](#-apache--mod--passenger--passenger_enabled)
+* [`passenger_dump_config_manifest`](#-apache--mod--passenger--passenger_dump_config_manifest)
 * [`passenger_error_override`](#-apache--mod--passenger--passenger_error_override)
 * [`passenger_file_descriptor_log_file`](#-apache--mod--passenger--passenger_file_descriptor_log_file)
 * [`passenger_fly_with`](#-apache--mod--passenger--passenger_fly_with)
@@ -4476,6 +4472,7 @@ The following parameters are available in the `apache::mod::passenger` class:
 * [`passenger_max_request_queue_size`](#-apache--mod--passenger--passenger_max_request_queue_size)
 * [`passenger_max_request_time`](#-apache--mod--passenger--passenger_max_request_time)
 * [`passenger_max_requests`](#-apache--mod--passenger--passenger_max_requests)
+* [`passenger_max_request_queue_time`](#-apache--mod--passenger--passenger_max_request_queue_time)
 * [`passenger_memory_limit`](#-apache--mod--passenger--passenger_memory_limit)
 * [`passenger_meteor_app_settings`](#-apache--mod--passenger--passenger_meteor_app_settings)
 * [`passenger_min_instances`](#-apache--mod--passenger--passenger_min_instances)
@@ -4505,22 +4502,9 @@ The following parameters are available in the `apache::mod::passenger` class:
 * [`passenger_use_global_queue`](#-apache--mod--passenger--passenger_use_global_queue)
 * [`passenger_user`](#-apache--mod--passenger--passenger_user)
 * [`passenger_user_switching`](#-apache--mod--passenger--passenger_user_switching)
-* [`rack_auto_detect`](#-apache--mod--passenger--rack_auto_detect)
-* [`rack_autodetect`](#-apache--mod--passenger--rack_autodetect)
-* [`rack_base_uri`](#-apache--mod--passenger--rack_base_uri)
 * [`rack_env`](#-apache--mod--passenger--rack_env)
-* [`rails_allow_mod_rewrite`](#-apache--mod--passenger--rails_allow_mod_rewrite)
-* [`rails_app_spawner_idle_time`](#-apache--mod--passenger--rails_app_spawner_idle_time)
-* [`rails_auto_detect`](#-apache--mod--passenger--rails_auto_detect)
-* [`rails_autodetect`](#-apache--mod--passenger--rails_autodetect)
-* [`rails_base_uri`](#-apache--mod--passenger--rails_base_uri)
-* [`rails_default_user`](#-apache--mod--passenger--rails_default_user)
 * [`rails_env`](#-apache--mod--passenger--rails_env)
 * [`rails_framework_spawner_idle_time`](#-apache--mod--passenger--rails_framework_spawner_idle_time)
-* [`rails_ruby`](#-apache--mod--passenger--rails_ruby)
-* [`rails_spawn_method`](#-apache--mod--passenger--rails_spawn_method)
-* [`rails_user_switching`](#-apache--mod--passenger--rails_user_switching)
-* [`wsgi_auto_detect`](#-apache--mod--passenger--wsgi_auto_detect)
 
 ##### <a name="-apache--mod--passenger--manage_repo"></a>`manage_repo`
 
@@ -4579,9 +4563,42 @@ Specifies a path to the module. Do not manually set this parameter without a spe
 
 Default value: `undef`
 
+##### <a name="-apache--mod--passenger--passenger_admin_panel_url"></a>`passenger_admin_panel_url`
+
+Data type: `Optional[String]`
+
+Specifies a Fuse Panel URL that the Passenger to to enable monitoring, administering, analysis and troubleshooting of this Passenger instance and apps.
+
+Default value: `undef`
+
+##### <a name="-apache--mod--passenger--passenger_admin_panel_auth_type"></a>`passenger_admin_panel_auth_type`
+
+Data type: `Optional[Enum['basic']]`
+
+Specifies the authentication type to use for the Fuse Panel. Currently it support only basic type of authentiction.
+Ref : https://www.phusionpassenger.com/library/config/apache/reference/#passengeradminpanelauthtype
+
+Default value: `undef`
+
+##### <a name="-apache--mod--passenger--passenger_admin_panel_username"></a>`passenger_admin_panel_username`
+
+Data type: `Optional[String]`
+
+The username that Passenger should use when connecting to the Fuse Panel with basic authentication.
+
+Default value: `undef`
+
+##### <a name="-apache--mod--passenger--passenger_admin_panel_password"></a>`passenger_admin_panel_password`
+
+Data type: `Optional[String]`
+
+The password that Passenger should use when connecting to the Fuse Panel with basic authentication.
+
+Default value: `undef`
+
 ##### <a name="-apache--mod--passenger--passenger_allow_encoded_slashes"></a>`passenger_allow_encoded_slashes`
 
-Data type: `Optional[Enum['on', 'off', 'On', 'Off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Toggle whether URLs with encoded slashes (%2f) can be used (by default Apache does not support this).
 
@@ -4616,6 +4633,14 @@ Sets the name of the application group that the current application should belon
 
 Default value: `undef`
 
+##### <a name="-apache--mod--passenger--passenger_app_log_file"></a>`passenger_app_log_file`
+
+Data type: `Optional[String]`
+
+File path to application specifile log file. By default passenger will write all application log messages to the Passenger log file.
+
+Default value: `undef`
+
 ##### <a name="-apache--mod--passenger--passenger_app_root"></a>`passenger_app_root`
 
 Data type: `Optional[String]`
@@ -4643,7 +4668,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--passenger--passenger_buffer_response"></a>`passenger_buffer_response`
 
-Data type: `Optional[Enum['on', 'off', 'On', 'Off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Toggle whether application-generated responses are buffered by Apache. Buffering will happen in memory.
 
@@ -4651,7 +4676,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--passenger--passenger_buffer_upload"></a>`passenger_buffer_upload`
 
-Data type: `Optional[Enum['on', 'off', 'On', 'Off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Toggle whether HTTP client request bodies are buffered before they are sent to the application.
 
@@ -4699,7 +4724,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--passenger--passenger_debugger"></a>`passenger_debugger`
 
-Data type: `Optional[Enum['on', 'off', 'On', 'Off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Turns support for Ruby application debugging on or off.
 
@@ -4747,7 +4772,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--passenger--passenger_disable_security_update_check"></a>`passenger_disable_security_update_check`
 
-Data type: `Optional[Enum['on', 'off', 'On', 'Off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Allows disabling the Passenger security update check, a daily check with https://securitycheck.phusionpassenger.com for important
 security updates that might be available.
@@ -4756,15 +4781,23 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--passenger--passenger_enabled"></a>`passenger_enabled`
 
-Data type: `Optional[Enum['on', 'off', 'On', 'Off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Toggles whether Passenger should be enabled for that particular context.
 
 Default value: `undef`
 
+##### <a name="-apache--mod--passenger--passenger_dump_config_manifest"></a>`passenger_dump_config_manifest`
+
+Data type: `Optional[String]`
+
+Dumps the configuration manifest to the given file.
+
+Default value: `undef`
+
 ##### <a name="-apache--mod--passenger--passenger_error_override"></a>`passenger_error_override`
 
-Data type: `Optional[Enum['on', 'off', 'On', 'Off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Toggles whether Apache will intercept and handle responses with HTTP status codes of 400 and higher.
 
@@ -4797,7 +4830,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--passenger--passenger_friendly_error_pages"></a>`passenger_friendly_error_pages`
 
-Data type: `Optional[Enum['on', 'off', 'On', 'Off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Toggles whether Passenger should display friendly error pages whenever an application fails to start.
 
@@ -4814,7 +4847,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--passenger--passenger_high_performance"></a>`passenger_high_performance`
 
-Data type: `Optional[Enum['on', 'off', 'On', 'Off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Toggles whether to enable PassengerHighPerformance which will make Passenger will be a little faster, in return for reduced
 compatibility with other Apache modules.
@@ -4839,7 +4872,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--passenger--passenger_load_shell_envvars"></a>`passenger_load_shell_envvars`
 
-Data type: `Optional[Enum['on', 'off', 'On', 'Off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Enables or disables the loading of shell environment variables before spawning the application.
 
@@ -4935,6 +4968,15 @@ The maximum number of requests an application process will process.
 
 Default value: `undef`
 
+##### <a name="-apache--mod--passenger--passenger_max_request_queue_time"></a>`passenger_max_request_queue_time`
+
+Data type: `Optional[Integer]`
+
+The maximum amount of time, in seconds, that a request may be queued before Passenger will return an error.
+This option specifies the maximum time a request may spend in that queue. If a request in the queue reaches this specified limit, then Passenger will send a "504 Gateway Timeout" error for that request.
+
+Default value: `undef`
+
 ##### <a name="-apache--mod--passenger--passenger_memory_limit"></a>`passenger_memory_limit`
 
 Data type: `Optional[Integer]`
@@ -4993,7 +5035,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--passenger--passenger_resist_deployment_errors"></a>`passenger_resist_deployment_errors`
 
-Data type: `Optional[Enum['on', 'off', 'On', 'Off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Enables or disables resistance against deployment errors.
 
@@ -5001,7 +5043,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--passenger--passenger_resolve_symlinks_in_document_root"></a>`passenger_resolve_symlinks_in_document_root`
 
-Data type: `Optional[Enum['on', 'off', 'On', 'Off']]`
+Data type: `Optional[Apache::OnOff]`
 
 This option is no longer available in version 5.2.0. Switch to PassengerAppRoot if you are setting the application root via a
 document root containing symlinks.
@@ -5026,7 +5068,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--passenger--passenger_rolling_restarts"></a>`passenger_rolling_restarts`
 
-Data type: `Optional[Enum['on', 'off', 'On', 'Off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Enables or disables support for zero-downtime application restarts through restart.txt.
 
@@ -5058,7 +5100,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--passenger--passenger_show_version_in_header"></a>`passenger_show_version_in_header`
 
-Data type: `Optional[Enum['on', 'off', 'On', 'Off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Toggle whether Passenger will output its version number in the X-Powered-By header in all Passenger-served requests:
 
@@ -5114,7 +5156,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--passenger--passenger_sticky_sessions"></a>`passenger_sticky_sessions`
 
-Data type: `Optional[Enum['on', 'off', 'On', 'Off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Toggles whether all requests that a client sends will be routed to the same originating application process, whenever possible.
 
@@ -5163,33 +5205,9 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--passenger--passenger_user_switching"></a>`passenger_user_switching`
 
-Data type: `Optional[Enum['on', 'off', 'On', 'Off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Toggles whether to attempt to enable user account sandboxing, also known as user switching.
-
-Default value: `undef`
-
-##### <a name="-apache--mod--passenger--rack_auto_detect"></a>`rack_auto_detect`
-
-Data type: `Optional[String]`
-
-This option has been removed in version 4.0.0 as part of an optimization. You should use PassengerEnabled instead.
-
-Default value: `undef`
-
-##### <a name="-apache--mod--passenger--rack_autodetect"></a>`rack_autodetect`
-
-Data type: `Optional[String]`
-
-This option has been removed in version 4.0.0 as part of an optimization. You should use PassengerEnabled instead.
-
-Default value: `undef`
-
-##### <a name="-apache--mod--passenger--rack_base_uri"></a>`rack_base_uri`
-
-Data type: `Optional[String]`
-
-Deprecated in 3.0.0 in favor of PassengerBaseURI.
 
 Default value: `undef`
 
@@ -5198,54 +5216,6 @@ Default value: `undef`
 Data type: `Optional[String]`
 
 Alias for PassengerAppEnv.
-
-Default value: `undef`
-
-##### <a name="-apache--mod--passenger--rails_allow_mod_rewrite"></a>`rails_allow_mod_rewrite`
-
-Data type: `Optional[String]`
-
-This option doesn't do anything anymore since version 4.0.0.
-
-Default value: `undef`
-
-##### <a name="-apache--mod--passenger--rails_app_spawner_idle_time"></a>`rails_app_spawner_idle_time`
-
-Data type: `Optional[String]`
-
-This option has been removed in version 4.0.0, and replaced with PassengerMaxPreloaderIdleTime.
-
-Default value: `undef`
-
-##### <a name="-apache--mod--passenger--rails_auto_detect"></a>`rails_auto_detect`
-
-Data type: `Optional[String]`
-
-This option has been removed in version 4.0.0 as part of an optimization. You should use PassengerEnabled instead.
-
-Default value: `undef`
-
-##### <a name="-apache--mod--passenger--rails_autodetect"></a>`rails_autodetect`
-
-Data type: `Optional[String]`
-
-This option has been removed in version 4.0.0 as part of an optimization. You should use PassengerEnabled instead.
-
-Default value: `undef`
-
-##### <a name="-apache--mod--passenger--rails_base_uri"></a>`rails_base_uri`
-
-Data type: `Optional[String]`
-
-Deprecated in 3.0.0 in favor of PassengerBaseURI.
-
-Default value: `undef`
-
-##### <a name="-apache--mod--passenger--rails_default_user"></a>`rails_default_user`
-
-Data type: `Optional[String]`
-
-Deprecated in 3.0.0 in favor of PassengerDefaultUser
 
 Default value: `undef`
 
@@ -5263,38 +5233,6 @@ Data type: `Optional[String]`
 
 This option is no longer available in version 4.0.0. There is no alternative because framework spawning has been removed
 altogether. You should use smart spawning instead.
-
-Default value: `undef`
-
-##### <a name="-apache--mod--passenger--rails_ruby"></a>`rails_ruby`
-
-Data type: `Optional[String]`
-
-Deprecated in 3.0.0 in favor of PassengerRuby.
-
-Default value: `undef`
-
-##### <a name="-apache--mod--passenger--rails_spawn_method"></a>`rails_spawn_method`
-
-Data type: `Optional[String]`
-
-Deprecated in 3.0.0 in favor of PassengerSpawnMethod.
-
-Default value: `undef`
-
-##### <a name="-apache--mod--passenger--rails_user_switching"></a>`rails_user_switching`
-
-Data type: `Optional[String]`
-
-Deprecated in 3.0.0 in favor of PassengerUserSwitching.
-
-Default value: `undef`
-
-##### <a name="-apache--mod--passenger--wsgi_auto_detect"></a>`wsgi_auto_detect`
-
-Data type: `Optional[String]`
-
-This option has been removed in version 4.0.0 as part of an optimization. You should use PassengerEnabled instead.
 
 Default value: `undef`
 
@@ -5381,7 +5319,7 @@ Default value: `120`
 
 ##### <a name="-apache--mod--peruser--keepalive"></a>`keepalive`
 
-Data type: `Enum['On', 'Off']`
+Data type: `Apache::OnOff`
 
 
 
@@ -5729,6 +5667,14 @@ Installs `mod_proxy_http`.
   * https://httpd.apache.org/docs/current/mod/mod_proxy_http.html
     * for additional documentation.
 
+### <a name="apache--mod--proxy_http2"></a>`apache::mod::proxy_http2`
+
+Installs `mod_proxy_http2`.
+
+* **See also**
+  * https://httpd.apache.org/docs/current/mod/mod_proxy_http2.html
+    * for additional documentation.
+
 ### <a name="apache--mod--proxy_wstunnel"></a>`apache::mod::proxy_wstunnel`
 
 Installs `mod_proxy_wstunnel`.
@@ -5793,7 +5739,7 @@ Default value: `'X-Forwarded-For'`
 
 ##### <a name="-apache--mod--remoteip--internal_proxy"></a>`internal_proxy`
 
-Data type: `Optional[Array[Variant[Stdlib::Host,Stdlib::IP::Address]]]`
+Data type: `Optional[Array[Stdlib::Host]]`
 
 A list of IP addresses, IP blocks or hostname that are trusted to set a
 valid value inside specified header. Unlike the `$trusted_proxy_ips`
@@ -5804,7 +5750,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--remoteip--proxy_ips"></a>`proxy_ips`
 
-Data type: `Optional[Array[Variant[Stdlib::Host,Stdlib::IP::Address]]]`
+Data type: `Optional[Array[Stdlib::Host]]`
 
 *Deprecated*: use `$internal_proxy` instead.
 
@@ -5841,7 +5787,7 @@ Default value: `false`
 
 ##### <a name="-apache--mod--remoteip--proxy_protocol_exceptions"></a>`proxy_protocol_exceptions`
 
-Data type: `Optional[Array[Variant[Stdlib::Host,Stdlib::IP::Address]]]`
+Data type: `Optional[Array[Stdlib::Host]]`
 
 A list of IP address or IP blocks that are not required to use the PROXY
 protocol.
@@ -5954,7 +5900,7 @@ Data type: `String`
 
 Path to template to use for configuring mod_rpaf.
 
-Default value: `'apache/mod/rpaf.conf.erb'`
+Default value: `'apache/mod/rpaf.conf.epp'`
 
 ### <a name="apache--mod--security"></a>`apache::mod::security`
 
@@ -6264,7 +6210,7 @@ Default value: `131072`
 
 ##### <a name="-apache--mod--security--secrequestbodyaccess"></a>`secrequestbodyaccess`
 
-Data type: `Enum['On', 'Off']`
+Data type: `Apache::OnOff`
 
 Toggle SecRequestBodyAccess On or Off
 
@@ -6281,7 +6227,7 @@ Default value: `'Reject'`
 
 ##### <a name="-apache--mod--security--secresponsebodyaccess"></a>`secresponsebodyaccess`
 
-Data type: `Enum['On', 'Off']`
+Data type: `Apache::OnOff`
 
 Toggle SecResponseBodyAccess On or Off
 
@@ -6524,7 +6470,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--ssl--ssl_cipher"></a>`ssl_cipher`
 
-Data type: `String`
+Data type: `Variant[String[1], Hash[String[1], String[1]]]`
 
 Cipher Suite available for negotiation in SSL handshake.
 
@@ -6532,7 +6478,7 @@ Default value: `$apache::params::ssl_cipher`
 
 ##### <a name="-apache--mod--ssl--ssl_honorcipherorder"></a>`ssl_honorcipherorder`
 
-Data type: `Variant[Boolean, Enum['on', 'off']]`
+Data type: `Variant[Boolean, Apache::OnOff]`
 
 Option to prefer the server's cipher preference order.
 
@@ -6627,10 +6573,6 @@ Default value: `undef`
 Data type: `String`
 
 Configures mutex mechanism and lock file directory for all or specified mutexes.
-Default based on the OS and/or Apache version:
-- RedHat/FreeBSD/Suse/Gentoo: 'default'.
-- Debian/Ubuntu + Apache >= 2.4: 'default'.
-- Debian/Ubuntu + Apache < 2.4: 'file:${APACHE_RUN_DIR}/ssl_mutex'.
 
 Default value: `'default'`
 
@@ -6698,7 +6640,7 @@ Default value: `undef`
 
 ##### <a name="-apache--mod--status--extended_status"></a>`extended_status`
 
-Data type: `Enum['On', 'Off', 'on', 'off']`
+Data type: `Apache::OnOff`
 
 Determines whether to track extended status information for each request, via the ExtendedStatus directive.
 
@@ -6732,8 +6674,6 @@ Installs and configures `mod_userdir`.
 
 The following parameters are available in the `apache::mod::userdir` class:
 
-* [`home`](#-apache--mod--userdir--home)
-* [`dir`](#-apache--mod--userdir--dir)
 * [`userdir`](#-apache--mod--userdir--userdir)
 * [`disable_root`](#-apache--mod--userdir--disable_root)
 * [`path`](#-apache--mod--userdir--path)
@@ -6741,22 +6681,6 @@ The following parameters are available in the `apache::mod::userdir` class:
 * [`options`](#-apache--mod--userdir--options)
 * [`unmanaged_path`](#-apache--mod--userdir--unmanaged_path)
 * [`custom_fragment`](#-apache--mod--userdir--custom_fragment)
-
-##### <a name="-apache--mod--userdir--home"></a>`home`
-
-Data type: `Optional[String]`
-
-*Deprecated* Path to system home directory.
-
-Default value: `undef`
-
-##### <a name="-apache--mod--userdir--dir"></a>`dir`
-
-Data type: `Optional[String]`
-
-*Deprecated* Path from user's home directory to public directory.
-
-Default value: `undef`
 
 ##### <a name="-apache--mod--userdir--userdir"></a>`userdir`
 
@@ -7568,55 +7492,6 @@ override `Apache::Vhost['default']`  or `Apache::Vhost['default-ssl]` resources.
 workaround is to create a vhost named something else, such as `my default`, and ensure that the
 `default` and `default_ssl` vhosts are set to `false`:
 
-TODO: check, if this Documentation is obsolete
-lint:ignore:parameter_documentation
-lint:endignore
-  Specfies mod_auth_gssapi parameters for particular directories in a virtual host directory
-  ```puppet
-  apache::vhost { 'sample.example.net':
-    docroot     => '/path/to/directory',
-    directories => [
-      { path   => '/path/to/different/dir',
-        gssapi => {
-          acceptor_name            => '{HOSTNAME}',
-          allowed_mech             => ['krb5', 'iakerb', 'ntlmssp'],
-          authname                 => 'Kerberos 5',
-          authtype                 => 'GSSAPI',
-          basic_auth               => true,
-          basic_auth_mech          => ['krb5', 'iakerb', 'ntlmssp'],
-          basic_ticket_timeout     => 300,
-          connection_bound         => true,
-          cred_store               => {
-            ccache        => ['/path/to/directory'],
-            client_keytab => ['/path/to/example.keytab'],
-            keytab        => ['/path/to/example.keytab'],
-          },
-          deleg_ccache_dir         => '/path/to/directory',
-          deleg_ccache_env_var     => 'KRB5CCNAME',
-          deleg_ccache_perms       => {
-            mode => '0600',
-            uid  => 'example-user',
-            gid  => 'example-group',
-          },
-          deleg_ccache_unique      => true,
-          impersonate              => true,
-          local_name               => true,
-          name_attributes          => 'json',
-          negotiate_once           => true,
-          publish_errors           => true,
-          publish_mech             => true,
-          required_name_attributes =>	'auth-indicators=high',
-          session_key              => 'file:/path/to/example.key',
-          signal_persistent_auth   => true,
-          ssl_only                 => true,
-          use_s4u2_proxy           => true,
-          use_sessions             => true,
-        }
-      },
-    ],
-  }
-  ```
-
 #### Examples
 
 ##### 
@@ -7776,6 +7651,11 @@ The following parameters are available in the `apache::vhost` defined type:
 * [`passenger_app_log_file`](#-apache--vhost--passenger_app_log_file)
 * [`passenger_debugger`](#-apache--vhost--passenger_debugger)
 * [`passenger_lve_min_uid`](#-apache--vhost--passenger_lve_min_uid)
+* [`passenger_dump_config_manifest`](#-apache--vhost--passenger_dump_config_manifest)
+* [`passenger_admin_panel_url`](#-apache--vhost--passenger_admin_panel_url)
+* [`passenger_admin_panel_auth_type`](#-apache--vhost--passenger_admin_panel_auth_type)
+* [`passenger_admin_panel_username`](#-apache--vhost--passenger_admin_panel_username)
+* [`passenger_admin_panel_password`](#-apache--vhost--passenger_admin_panel_password)
 * [`php_values`](#-apache--vhost--php_values)
 * [`php_flags`](#-apache--vhost--php_flags)
 * [`php_admin_values`](#-apache--vhost--php_admin_values)
@@ -7802,7 +7682,6 @@ The following parameters are available in the `apache::vhost` defined type:
 * [`rewrite_cond`](#-apache--vhost--rewrite_cond)
 * [`rewrite_inherit`](#-apache--vhost--rewrite_inherit)
 * [`scriptalias`](#-apache--vhost--scriptalias)
-* [`scriptaliases`](#-apache--vhost--scriptaliases)
 * [`serveradmin`](#-apache--vhost--serveradmin)
 * [`serveraliases`](#-apache--vhost--serveraliases)
 * [`servername`](#-apache--vhost--servername)
@@ -7829,7 +7708,6 @@ The following parameters are available in the `apache::vhost` defined type:
 * [`shib_compat_valid_user`](#-apache--vhost--shib_compat_valid_user)
 * [`ssl_options`](#-apache--vhost--ssl_options)
 * [`additional_includes`](#-apache--vhost--additional_includes)
-* [`gssapi`](#-apache--vhost--gssapi)
 * [`ssl`](#-apache--vhost--ssl)
 * [`ssl_ca`](#-apache--vhost--ssl_ca)
 * [`ssl_cert`](#-apache--vhost--ssl_cert)
@@ -7997,11 +7875,6 @@ a corresponding context, such as `<Directory /path/to/directory>` or
 the `aliases` parameter. As described in the `mod_alias` documentation, add more specific
 `alias`, `aliasmatch`, `scriptalias` or `scriptaliasmatch` parameters before the more
 general ones to avoid shadowing.<BR />
-> **Note**: Use the `aliases` parameter instead of the `scriptaliases` parameter because
-you can precisely control the order of various alias directives. Defining `ScriptAliases`
-using the `scriptaliases` parameter means *all* `ScriptAlias` directives will come after
-*all* `Alias` directives, which can lead to `Alias` directives shadowing `ScriptAlias`
-directives. This often causes problems; for example, this could cause problems with Nagios.<BR />
 If `apache::mod::passenger` is loaded and `PassengerHighPerformance` is `true`, the `Alias`
 directive might not be able to honor the `PassengerEnabled => off` statement. See
 [this article](http://www.conandalton.net/2010/06/passengerenabled-off-not-working.html) for details.
@@ -8010,7 +7883,7 @@ Default value: `[]`
 
 ##### <a name="-apache--vhost--allow_encoded_slashes"></a>`allow_encoded_slashes`
 
-Data type: `Optional[Enum['on', 'off', 'nodecode']]`
+Data type: `Optional[Variant[Apache::OnOff, Enum['nodecode']]]`
 
 Sets the `AllowEncodedSlashes` declaration for the virtual host, overriding the server
 default. This modifies the virtual host responses to URLs with `\` and `/` characters. The
@@ -8553,7 +8426,7 @@ Default value: `undef`
 
 ##### <a name="-apache--vhost--keepalive"></a>`keepalive`
 
-Data type: `Optional[Enum['on', 'off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Determines whether to enable persistent HTTP connections with the `KeepAlive` directive
 for the virtual host. By default, the global, server-wide `KeepAlive` setting is in effect.<br />
@@ -8612,7 +8485,7 @@ Default value: `false`
 
 ##### <a name="-apache--vhost--krb_method_negotiate"></a>`krb_method_negotiate`
 
-Data type: `Enum['on', 'off']`
+Data type: `Apache::OnOff`
 
 Determines whether to use the Negotiate method.
 
@@ -8620,7 +8493,7 @@ Default value: `'on'`
 
 ##### <a name="-apache--vhost--krb_method_k5passwd"></a>`krb_method_k5passwd`
 
-Data type: `Enum['on', 'off']`
+Data type: `Apache::OnOff`
 
 Determines whether to use password-based authentication for Kerberos v5.
 
@@ -8628,7 +8501,7 @@ Default value: `'on'`
 
 ##### <a name="-apache--vhost--krb_authoritative"></a>`krb_authoritative`
 
-Data type: `Enum['on', 'off']`
+Data type: `Apache::OnOff`
 
 If set to `off`, authentication controls can be passed on to another module.
 
@@ -8652,7 +8525,7 @@ Default value: `undef`
 
 ##### <a name="-apache--vhost--krb_local_user_mapping"></a>`krb_local_user_mapping`
 
-Data type: `Optional[Enum['on', 'off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Strips @REALM from usernames for further use.
 
@@ -8660,7 +8533,7 @@ Default value: `undef`
 
 ##### <a name="-apache--vhost--krb_verify_kdc"></a>`krb_verify_kdc`
 
-Data type: `Enum['on', 'off']`
+Data type: `Apache::OnOff`
 
 This option can be used to disable the verification tickets against local keytab to prevent
 KDC spoofing attacks.
@@ -8678,7 +8551,7 @@ Default value: `'HTTP'`
 
 ##### <a name="-apache--vhost--krb_save_credentials"></a>`krb_save_credentials`
 
-Data type: `Enum['on', 'off']`
+Data type: `Apache::OnOff`
 
 This option enables credential saving functionality.
 
@@ -9399,6 +9272,51 @@ specified value on LVE-enabled kernels.
 
 Default value: `undef`
 
+##### <a name="-apache--vhost--passenger_dump_config_manifest"></a>`passenger_dump_config_manifest`
+
+Data type: `Optional[String]`
+
+Sets [PassengerLveMinUid](https://www.phusionpassenger.com/docs/references/config_reference/apache/#passengerlveminuid),
+to dump the configuration manifest to a file.
+
+Default value: `undef`
+
+##### <a name="-apache--vhost--passenger_admin_panel_url"></a>`passenger_admin_panel_url`
+
+Data type: `Optional[String]`
+
+Sets [PassengerAdminPanelUrl](https://www.phusionpassenger.com/docs/references/config_reference/apache/#passengeradminpanelurl),
+to specify the URL of the Passenger admin panel.
+
+Default value: `undef`
+
+##### <a name="-apache--vhost--passenger_admin_panel_auth_type"></a>`passenger_admin_panel_auth_type`
+
+Data type: `Optional[Enum['basic']]`
+
+Sets [PassengerAdminPanelAuthType](https://www.phusionpassenger.com/docs/references/config_reference/apache/#passengeradminpanelauthtype),
+to specify the authentication type for the Passenger admin panel.
+
+Default value: `undef`
+
+##### <a name="-apache--vhost--passenger_admin_panel_username"></a>`passenger_admin_panel_username`
+
+Data type: `Optional[String]`
+
+Sets [PassengerAdminPanelUsername](https://www.phusionpassenger.com/docs/references/config_reference/apache/#passengeradminpanelusername),
+to specify the username for the Passenger admin panel.
+
+Default value: `undef`
+
+##### <a name="-apache--vhost--passenger_admin_panel_password"></a>`passenger_admin_panel_password`
+
+Data type: `Optional[String]`
+
+Sets [PassengerAdminPanelPassword](https://www.phusionpassenger.com/docs/references/config_reference/apache/#passengeradminpanelpassword),
+to specify the password for the Passenger admin panel.
+
+Default value: `undef`
+
 ##### <a name="-apache--vhost--php_values"></a>`php_values`
 
 Data type: `Hash`
@@ -9811,39 +9729,6 @@ Defines a directory of CGI scripts to be aliased to the path '/cgi-bin', such as
 
 Default value: `undef`
 
-##### <a name="-apache--vhost--scriptaliases"></a>`scriptaliases`
-
-Data type: `Array[Hash]`
-
-> **Note**: This parameter is deprecated in favor of the `aliases` parameter.<br />
-Passes an array of hashes to the virtual host to create either ScriptAlias or
-ScriptAliasMatch statements per the `mod_alias` documentation.
-``` puppet
-scriptaliases => [
-  {
-    alias => '/myscript',
-    path  => '/usr/share/myscript',
-  },
-  {
-    aliasmatch => '^/foo(.*)',
-    path       => '/usr/share/fooscripts$1',
-  },
-  {
-    aliasmatch => '^/bar/(.*)',
-    path       => '/usr/share/bar/wrapper.sh/$1',
-  },
-  {
-    alias => '/neatscript',
-    path  => '/usr/share/neatscript',
-  },
-]
-```
-The ScriptAlias and ScriptAliasMatch directives are created in the order specified.
-As with [Alias and AliasMatch](#aliases) directives, specify more specific aliases
-before more general ones to avoid shadowing.
-
-Default value: `[]`
-
 ##### <a name="-apache--vhost--serveradmin"></a>`serveradmin`
 
 Data type: `Optional[String]`
@@ -10038,7 +9923,7 @@ Default value: `undef`
 
 ##### <a name="-apache--vhost--wsgi_chunked_request"></a>`wsgi_chunked_request`
 
-Data type: `Optional[Enum['On', 'Off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Sets up a virtual host with [WSGI](https://github.com/GrahamDumpleton/mod_wsgi) alongside
 wsgi_daemon_process, wsgi_daemon_process_options, wsgi_process_group,
@@ -10089,7 +9974,7 @@ Default value: `undef`
 
 ##### <a name="-apache--vhost--wsgi_pass_authorization"></a>`wsgi_pass_authorization`
 
-Data type: `Optional[Enum['on', 'off', 'On', 'Off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Sets up a virtual host with [WSGI](https://github.com/GrahamDumpleton/mod_wsgi) alongside
 wsgi_daemon_process, wsgi_daemon_process_options, wsgi_process_group and
@@ -10100,7 +9985,7 @@ Default value: `undef`
 
 ##### <a name="-apache--vhost--directories"></a>`directories`
 
-Data type: `Optional[Array[Hash]]`
+Data type: `Array[Hash]`
 
 The `directories` parameter within the `apache::vhost` class passes an array of hashes
 to the virtual host to create [Directory](https://httpd.apache.org/docs/current/mod/core.html#directory),
@@ -10149,7 +10034,84 @@ apache::vhost { 'sample.example.net':
 Any handlers you do not set in these hashes are considered `undefined` within Puppet and
 are not added to the virtual host, resulting in the module using their default values.
 
-Default value: `undef`
+The `directories` param can accepts the different authentication ways, including `gssapi`, `Basic (authz_core)`,
+and others.
+
+  * `gssapi` - Specifies mod_auth_gssapi parameters for particular directories in a virtual host directory
+    TODO: check, if this Documentation is obsolete
+
+    ```puppet
+    apache::vhost { 'sample.example.net':
+      docroot     => '/path/to/directory',
+      directories => [
+        { path   => '/path/to/different/dir',
+          gssapi => {
+            acceptor_name            => '{HOSTNAME}',
+            allowed_mech             => ['krb5', 'iakerb', 'ntlmssp'],
+            authname                 => 'Kerberos 5',
+            authtype                 => 'GSSAPI',
+            basic_auth               => true,
+            basic_auth_mech          => ['krb5', 'iakerb', 'ntlmssp'],
+            basic_ticket_timeout     => 300,
+            connection_bound         => true,
+            cred_store               => {
+              ccache        => ['/path/to/directory'],
+              client_keytab => ['/path/to/example.keytab'],
+              keytab        => ['/path/to/example.keytab'],
+            },
+            deleg_ccache_dir         => '/path/to/directory',
+            deleg_ccache_env_var     => 'KRB5CCNAME',
+            deleg_ccache_perms       => {
+              mode => '0600',
+              uid  => 'example-user',
+              gid  => 'example-group',
+            },
+            deleg_ccache_unique      => true,
+            impersonate              => true,
+            local_name               => true,
+            name_attributes          => 'json',
+            negotiate_once           => true,
+            publish_errors           => true,
+            publish_mech             => true,
+            required_name_attributes =>	'auth-indicators=high',
+            session_key              => 'file:/path/to/example.key',
+            signal_persistent_auth   => true,
+            ssl_only                 => true,
+            use_s4u2_proxy           => true,
+            use_sessions             => true,
+          }
+        },
+      ],
+    }
+    ```
+
+  * `Basic` - Specifies mod_authz_core parameters for particular directories in a virtual host directory
+    ```puppet
+    apache::vhost { 'sample.example.net':
+      docroot     => '/path/to/directory',
+      directories => [
+        {
+          path        => '/path/to/different/dir',
+          auth_type => 'Basic',
+          authz_core  => {
+            require_all => {
+              'require_any' => {
+                'require' => ['user superadmin'],
+                'require_all' => {
+                  'require' => ['group admins', 'ldap-group "cn=Administrators,o=Airius"'],
+                },
+              },
+              'require_none' => {
+                'require' => ['group temps', 'ldap-group "cn=Temporary Employees,o=Airius"']
+              }
+            }
+          }
+        },
+      ],
+    }
+    ```
+
+Default value: `[]`
 
 ##### <a name="-apache--vhost--custom_fragment"></a>`custom_fragment`
 
@@ -10256,10 +10218,6 @@ apache::vhost { 'sample.example.net':
 
 Default value: `[]`
 
-##### <a name="-apache--vhost--gssapi"></a>`gssapi`
-
-
-
 ##### <a name="-apache--vhost--ssl"></a>`ssl`
 
 Data type: `Boolean`
@@ -10296,7 +10254,7 @@ Default value: `undef`
 
 ##### <a name="-apache--vhost--ssl_cipher"></a>`ssl_cipher`
 
-Data type: `Optional[Variant[Array[String], String]]`
+Data type: `Optional[Variant[Array[String[1]], String[1], Hash[String[1], String[1]]]]`
 
 Specifies [SSLCipherSuite](https://httpd.apache.org/docs/current/mod/mod_ssl.html#sslciphersuite).
 
@@ -10304,7 +10262,7 @@ Default value: `undef`
 
 ##### <a name="-apache--vhost--ssl_honorcipherorder"></a>`ssl_honorcipherorder`
 
-Data type: `Variant[Boolean, Enum['on', 'On', 'off', 'Off'], Undef]`
+Data type: `Variant[Boolean, Apache::OnOff, Undef]`
 
 Sets [SSLHonorCipherOrder](https://httpd.apache.org/docs/current/mod/mod_ssl.html#sslhonorcipherorder),
 to cause Apache to use the server's preferred order of ciphers rather than the client's
@@ -10493,7 +10451,7 @@ Default value: `undef`
 
 ##### <a name="-apache--vhost--ssl_proxy_check_peer_cn"></a>`ssl_proxy_check_peer_cn`
 
-Data type: `Optional[Enum['on', 'off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Sets the [SSLProxyCheckPeerCN](https://httpd.apache.org/docs/current/mod/mod_ssl.html#sslproxycheckpeercn)
 directive, which specifies whether the remote server certificate's CN field is compared
@@ -10503,7 +10461,7 @@ Default value: `undef`
 
 ##### <a name="-apache--vhost--ssl_proxy_check_peer_name"></a>`ssl_proxy_check_peer_name`
 
-Data type: `Optional[Enum['on', 'off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Sets the [SSLProxyCheckPeerName](https://httpd.apache.org/docs/current/mod/mod_ssl.html#sslproxycheckpeername)
 directive, which specifies whether the remote server certificate's CN field is compared
@@ -10513,7 +10471,7 @@ Default value: `undef`
 
 ##### <a name="-apache--vhost--ssl_proxy_check_peer_expire"></a>`ssl_proxy_check_peer_expire`
 
-Data type: `Optional[Enum['on', 'off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Sets the [SSLProxyCheckPeerExpire](https://httpd.apache.org/docs/current/mod/mod_ssl.html#sslproxycheckpeerexpire)
 directive, which specifies whether the remote server certificate is checked for expiration
@@ -10559,7 +10517,7 @@ Default value: `undef`
 
 ##### <a name="-apache--vhost--ssl_stapling_return_errors"></a>`ssl_stapling_return_errors`
 
-Data type: `Optional[Enum['on', 'off']]`
+Data type: `Optional[Apache::OnOff]`
 
 Can be used to set the [SSLStaplingReturnResponderErrors](http://httpd.apache.org/docs/current/mod/mod_ssl.html#sslstaplingreturnrespondererrors) directive.<br />
 This parameter only applies to Apache 2.4 or higher and is ignored on older versions.
@@ -10584,7 +10542,7 @@ Default value: `$apache::default_ssl_reload_on_change`
 
 ##### <a name="-apache--vhost--use_canonical_name"></a>`use_canonical_name`
 
-Data type: `Optional[Enum['On', 'on', 'Off', 'off', 'DNS', 'dns']]`
+Data type: `Optional[Variant[Apache::OnOff, Enum['DNS', 'dns']]]`
 
 Specifies whether to use the [`UseCanonicalName directive`](https://httpd.apache.org/docs/2.4/mod/core.html#usecanonicalname),
 which allows you to configure how the server determines it's own name and port.
@@ -11093,6 +11051,102 @@ Data type: `Any`
 
 
 
+### <a name="apache--authz_core_config"></a>`apache::authz_core_config`
+
+Type: Ruby 4.x API
+
+Function to generate the authz_core configuration directives.
+
+#### Examples
+
+##### 
+
+```puppet
+
+arg = {
+  require_all => {
+   'require_any' => {
+     'require' => ['user superadmin'],
+     'require_all' => {
+       'require' => ['group admins'],
+     },
+    },
+   'require_none' => {
+     'require' => ['group temps']
+   }
+  }
+}
+
+apache::bool2httpd(arg)
+returns :
+[
+  "  <RequireAll>",
+  "    <RequireAny>",
+  "      Require user superadmin",
+  "      <RequireAll>",
+  "        Require group admins",
+  "        Require ldap-group \"cn=Administrators,o=Airius\"",
+  "      </RequireAll>",
+  "    </RequireAny>",
+  "    <RequireNone>",
+  "      Require group temps",
+  "      Require ldap-group \"cn=Temporary Employees,o=Airius\"",
+  "    </RequireNone>",
+  "  </RequireAll>"
+]
+```
+
+#### `apache::authz_core_config(Hash $config)`
+
+The apache::authz_core_config function.
+
+Returns: `Array` Returns the authz_core config directives in array.
+
+##### Examples
+
+###### 
+
+```puppet
+
+arg = {
+  require_all => {
+   'require_any' => {
+     'require' => ['user superadmin'],
+     'require_all' => {
+       'require' => ['group admins'],
+     },
+    },
+   'require_none' => {
+     'require' => ['group temps']
+   }
+  }
+}
+
+apache::bool2httpd(arg)
+returns :
+[
+  "  <RequireAll>",
+  "    <RequireAny>",
+  "      Require user superadmin",
+  "      <RequireAll>",
+  "        Require group admins",
+  "        Require ldap-group \"cn=Administrators,o=Airius\"",
+  "      </RequireAll>",
+  "    </RequireAny>",
+  "    <RequireNone>",
+  "      Require group temps",
+  "      Require ldap-group \"cn=Temporary Employees,o=Airius\"",
+  "    </RequireNone>",
+  "  </RequireAll>"
+]
+```
+
+##### `config`
+
+Data type: `Hash`
+
+The input as JSON format.
+
 ### <a name="apache--bool2httpd"></a>`apache::bool2httpd`
 
 Type: Ruby 4.x API
@@ -11224,7 +11278,7 @@ The levels are (in order of decreasing significance):
 * **See also**
   * https://httpd.apache.org/docs/current/mod/core.html#loglevel
 
-Alias of `Pattern[/(emerg|alert|crit|error|warn|notice|info|debug|trace[1-8])/]`
+Alias of `Pattern[/\A([a-z_\.]+:)?(emerg|alert|crit|error|warn|notice|info|debug|trace[1-8])(\s+([a-z_\.]+:)?(emerg|alert|crit|error|warn|notice|info|debug|trace[1-8]))*\Z/]`
 
 ### <a name="Apache--ModProxyProtocol"></a>`Apache::ModProxyProtocol`
 
@@ -11352,6 +11406,12 @@ Struct[{
     Optional['RefreshAccessTokenBeforeExpiry']          => Pattern[/^[0-9]+(\slogout_on_error)?$/],
   }]
 ```
+
+### <a name="Apache--OnOff"></a>`Apache::OnOff`
+
+A string that is accepted in Apache config to turn something on or off
+
+Alias of `Enum['On', 'on', 'Off', 'off']`
 
 ### <a name="Apache--ServerTokens"></a>`Apache::ServerTokens`
 

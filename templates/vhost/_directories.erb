@@ -45,6 +45,9 @@
       <%- elsif provider == 'Directory' -%>
     AllowOverride None
       <%- end -%>
+      <%- if directory['allow_override_list'] -%>
+    AllowOverrideList <%= Array(directory['allow_override_list']).join(' ') %>
+      <%- end -%>
     <%- end -%>
     <%- scope.lookupvar('_template_scope')[:item] = directory -%>
 <%= scope.function_template(["apache/vhost/_require.erb"]) -%>
@@ -299,11 +302,50 @@
     AuthLDAPGroupAttribute <%= groupattr %>
       <%- end -%>
     <%- end -%>
-    <%- if directory['auth_ldap_group_attribute_is_dn'] == 'off' -%>
-    AuthLDAPGroupAttributeIsDN Off
+    <%- unless directory['auth_ldap_group_attribute_is_dn'].nil? -%>
+    AuthLDAPGroupAttributeIsDN <%= scope.call_function('apache::bool2httpd', [ directory['auth_ldap_group_attribute_is_dn'] ]) %>
     <%- end -%>
-    <%- if directory['auth_ldap_group_attribute_is_dn'] == 'on' -%>
-    AuthLDAPGroupAttributeIsDN On
+    <%- if directory['auth_ldap_initial_bind_pattern'] -%>
+    AuthLDAPInitialBindPattern <%= directory['auth_ldap_initial_bind_pattern'] %>
+    <%- end -%>
+    <%- unless directory['auth_ldap_bind_as_user'].nil? -%>
+    AuthLDAPInitialBindAsUser <%= scope.call_function('apache::bool2httpd', [ directory['auth_ldap_bind_as_user'] ]) %>
+    <%- end -%>
+    <%- unless directory['auth_ldap_compare_as_user'].nil? -%>
+    AuthLDAPCompareAsUser <%= scope.call_function('apache::bool2httpd', [ directory['auth_ldap_compare_as_user'] ]) %>
+    <%- end -%>
+    <%- unless directory['auth_ldap_search_as_user'].nil? -%>
+    AuthLDAPSearchAsUser <%= scope.call_function('apache::bool2httpd', [ directory['auth_ldap_search_as_user'] ]) %>
+    <%- end -%>
+    <%- unless directory['auth_ldap_bind_authoritative'].nil? -%>
+    AuthLDAPBindAuthoritative <%= scope.call_function('apache::bool2httpd', [ directory['auth_ldap_bind_authoritative'] ]) %>
+    <%- end -%>
+    <%- if directory['auth_ldap_authorize_prefix'] -%>
+    AuthLDAPAuthorizePrefix <%= directory['auth_ldap_authorize_prefix'] %>
+    <%- end -%>
+    <%- if directory['auth_ldap_charset_config'] -%>
+    AuthLDAPCharsetConfig <%= directory['auth_ldap_charset_config'] %>
+    <%- end -%>
+    <%- unless directory['auth_ldap_compare_dn_on_server'].nil? -%>
+    AuthLDAPCompareDNOnServer <%= scope.call_function('apache::bool2httpd', [ directory['auth_ldap_compare_dn_on_server'] ]) %>
+    <%- end -%>
+    <%- if directory['auth_ldap_dereference_aliases'] -%>
+    AuthLDAPDereferenceAliases <%= directory['auth_ldap_dereference_aliases'] %>
+    <%- end -%>
+    <%- if directory['auth_ldap_max_sub_group_depth'] -%>
+    AuthLDAPMaxSubGroupDepth <%= directory['auth_ldap_max_sub_group_depth'] %>
+    <%- end -%>
+    <%- if directory['auth_ldap_remote_user_attribute'] -%>
+    AuthLDAPRemoteUserAttribute <%= directory['auth_ldap_remote_user_attribute'] %>
+    <%- end -%>
+    <%- unless directory['auth_ldap_remote_user_is_dn'].nil? -%>
+    AuthLDAPRemoteUserIsDN <%= scope.call_function('apache::bool2httpd', [ directory['auth_ldap_remote_user_is_dn'] ]) %>
+    <%- end -%>
+    <%- if directory['auth_ldap_sub_group_attribute'] -%>
+    AuthLDAPSubGroupAttribute <%= directory['auth_ldap_sub_group_attribute'] %>
+    <%- end -%>
+    <%- if directory['auth_ldap_sub_group_class'] -%>
+    AuthLDAPSubGroupClass <%= directory['auth_ldap_sub_group_class'] %>
     <%- end -%>
     <%- if directory['fallbackresource'] -%>
     FallbackResource <%= directory['fallbackresource'] %>
@@ -428,6 +470,11 @@
       <%- if directory['mellon_idp_metadata_file'] -%>
     MellonIDPMetadataFile "<%= directory['mellon_idp_metadata_file'] %>"
       <%- end -%>
+      <%- if directory['mellon_set_env'] -%>
+        <%- directory['mellon_set_env'].each do |key, value| -%>
+    MellonSetEnv "<%= key %>" "<%= value %>"
+        <%- end -%>
+      <%- end -%>
       <%- if directory['mellon_set_env_no_prefix'] -%>
         <%- directory['mellon_set_env_no_prefix'].each do |key, value| -%>
     MellonSetEnvNoPrefix "<%= key %>" "<%= value %>"
@@ -499,6 +546,9 @@
     <%- end -%>
     <%- if directory['custom_fragment'] -%>
     <%= directory['custom_fragment'] %>
+    <%- end -%>
+    <%- if directory['authz_core'] -%>
+      <%= scope.call_function('epp',["apache/vhost/_authz_core.epp", 'authz_core_config' => scope.call_function('apache::authz_core_config', directory['authz_core'])]) -%>
     <%- end -%>
     <%- if directory['gssapi'] -%>
       <%= scope.call_function('epp',["apache/vhost/_gssapi.epp", directory['gssapi']]) -%>

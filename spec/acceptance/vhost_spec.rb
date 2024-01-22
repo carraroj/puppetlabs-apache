@@ -816,10 +816,6 @@ describe 'apache::vhost define' do
         docroot    => '/tmp',
         proxy_dest => 'http://testproxy',
       }
-      apache::vhost { 'test.scriptaliases':
-        docroot    => '/tmp',
-        scriptaliases => [{ alias => '/myscript', path  => '/usr/share/myscript', }],
-      }
       apache::vhost { 'test.aliases':
         docroot    => '/tmp',
         aliases => [
@@ -928,11 +924,6 @@ describe 'apache::vhost define' do
     describe file("#{apache_hash['vhost_dir']}/25-test.proxy.conf") do
       it { is_expected.to be_file }
       it { is_expected.to contain 'ProxyPass        / http://testproxy/' }
-    end
-
-    describe file("#{apache_hash['vhost_dir']}/25-test.scriptaliases.conf") do
-      it { is_expected.to be_file }
-      it { is_expected.to contain 'ScriptAlias /myscript "/usr/share/myscript"' }
     end
 
     describe file("#{apache_hash['vhost_dir']}/25-test.aliases.conf") do
@@ -1195,7 +1186,7 @@ describe 'apache::vhost define' do
 
   describe 'additional_includes' do
     pp = <<-MANIFEST
-      if $facts['osfamily'] == 'RedHat' and $facts['selinux'] {
+      if $facts['os']['family'] == 'RedHat' and $facts['os']['selinux']['enabled'] {
         exec { 'set_apache_defaults':
           command => 'semanage fcontext --add -t httpd_sys_content_t "/apache_spec/docroot(/.*)?"',
           unless  => 'semanage fcontext --list | grep /apache_spec/docroot | grep httpd_sys_content_t',
@@ -1230,8 +1221,7 @@ describe 'apache::vhost define' do
     end
   end
 
-  describe 'shibboleth parameters', if: (os[:family] == 'debian' && os[:release] != '7') do
-    # Debian 7 is too old for ShibCompatValidUser
+  describe 'shibboleth parameters', if: (os[:family] == 'debian') do
     pp = <<-MANIFEST
       class { 'apache': }
       class { 'apache::mod::shib': }

@@ -1,11 +1,5 @@
 # @summary
 #   Installs and configures `mod_userdir`.
-# 
-# @param home
-#   *Deprecated* Path to system home directory.
-#   
-# @param dir
-#   *Deprecated* Path from user's home directory to public directory.
 #
 # @param userdir
 #   Path or directory name to be used as the UserDir.
@@ -31,8 +25,6 @@
 # @see https://httpd.apache.org/docs/current/mod/mod_userdir.html for additional documentation.
 #
 class apache::mod::userdir (
-  Optional[String] $home            = undef,
-  Optional[String] $dir             = undef,
   Optional[String[1]] $userdir      = undef,
   Boolean $disable_root             = true,
   String $path                      = '/home/*/public_html',
@@ -43,31 +35,23 @@ class apache::mod::userdir (
 ) {
   include apache
 
-  if $home or $dir {
-    $_home = $home ? {
-      undef   => '/home',
-      default => $home,
-    }
-    $_dir = $dir ? {
-      undef   => 'public_html',
-      default => $dir,
-    }
-    warning('home and dir are deprecated; use path instead')
-    $_path = "${_home}/*/${_dir}"
-  } else {
-    $_path = $path
-  }
-
-  $_userdir = pick($userdir, $_path)
-
   ::apache::mod { 'userdir': }
 
-  # Template uses $home, $dir, $disable_root
+  $parameters = {
+    'disable_root'    => $disable_root,
+    'userdir'         => pick($userdir, $path),
+    'unmanaged_path'  => $unmanaged_path,
+    'path'            => $path,
+    'overrides'       => $overrides,
+    'options'         => $options,
+    'custom_fragment' => $custom_fragment,
+  }
+
   file { 'userdir.conf':
     ensure  => file,
     path    => "${apache::mod_dir}/userdir.conf",
     mode    => $apache::file_mode,
-    content => template('apache/mod/userdir.conf.erb'),
+    content => epp('apache/mod/userdir.conf.epp', $parameters),
     require => Exec["mkdir ${apache::mod_dir}"],
     before  => File[$apache::mod_dir],
     notify  => Class['apache::service'],

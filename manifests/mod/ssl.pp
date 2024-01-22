@@ -67,10 +67,6 @@
 #
 # @param ssl_mutex
 #   Configures mutex mechanism and lock file directory for all or specified mutexes.
-#   Default based on the OS and/or Apache version:
-#   - RedHat/FreeBSD/Suse/Gentoo: 'default'.
-#   - Debian/Ubuntu + Apache >= 2.4: 'default'.
-#   - Debian/Ubuntu + Apache < 2.4: 'file:${APACHE_RUN_DIR}/ssl_mutex'.
 #
 # @param ssl_reload_on_change
 #   Enable reloading of apache if the content of ssl files have changed. It only affects ssl files configured here and not vhost ones.
@@ -95,7 +91,7 @@ class apache::mod::ssl (
   Optional[Stdlib::Absolutepath] $ssl_cert                  = undef,
   Optional[Stdlib::Absolutepath] $ssl_key                   = undef,
   Optional[Stdlib::Absolutepath] $ssl_ca                    = undef,
-  String $ssl_cipher                                        = $apache::params::ssl_cipher,
+  Variant[String[1], Hash[String[1], String[1]]] $ssl_cipher   = $apache::params::ssl_cipher,
   Variant[Boolean, Apache::OnOff] $ssl_honorcipherorder     = true,
   Array[String] $ssl_protocol                               = $apache::params::ssl_protocol,
   Array $ssl_proxy_protocol                                 = [],
@@ -189,11 +185,35 @@ class apache::mod::ssl (
   # $ssl_mutex
   # $ssl_random_seed_bytes
   # $ssl_sessioncachetimeout
+  $parameters = {
+    'ssl_random_seed_bytes'       => $ssl_random_seed_bytes,
+    'ssl_pass_phrase_dialog'      => $ssl_pass_phrase_dialog,
+    'ssl_sessioncache'            => $ssl_sessioncache,
+    'ssl_sessioncachetimeout'     => $ssl_sessioncachetimeout,
+    'ssl_mutex'                   => $ssl_mutex,
+    'ssl_compression'             => $ssl_compression,
+    'ssl_sessiontickets'          => $ssl_sessiontickets,
+    'ssl_cryptodevice'            => $ssl_cryptodevice,
+    '_ssl_honorcipherorder'       => $_ssl_honorcipherorder,
+    'ssl_cert'                    => $ssl_cert,
+    'ssl_key'                     => $ssl_key,
+    'ssl_ca'                      => $ssl_ca,
+    'ssl_stapling'                => $ssl_stapling,
+    'ssl_stapling_return_errors'  => $ssl_stapling_return_errors,
+    '_stapling_cache'             => $_stapling_cache,
+    'ssl_cipher'                  => $ssl_cipher,
+    'ssl_protocol'                => $ssl_protocol,
+    'ssl_proxy_protocol'          => $ssl_proxy_protocol,
+    'ssl_proxy_cipher_suite'      => $ssl_proxy_cipher_suite,
+    'ssl_options'                 => $ssl_options,
+    'ssl_openssl_conf_cmd'        => $ssl_openssl_conf_cmd,
+  }
+
   file { 'ssl.conf':
     ensure  => file,
     path    => $apache::_ssl_file,
     mode    => $apache::file_mode,
-    content => template('apache/mod/ssl.conf.erb'),
+    content => epp('apache/mod/ssl.conf.epp', $parameters),
     require => Exec["mkdir ${apache::mod_dir}"],
     before  => File[$apache::mod_dir],
     notify  => Class['apache::service'],

@@ -84,6 +84,17 @@ describe 'apache::mod::php', type: :class do
                 }
               end
             end
+          when '12'
+            context 'on bookworm' do
+              it { is_expected.to contain_apache__mod('php8.2') }
+              it { is_expected.to contain_package('libapache2-mod-php8.2') }
+
+              it {
+                expect(subject).to contain_file('php8.2.load').with(
+                  content: "LoadModule php8_module /usr/lib/apache2/modules/libphp8.2.so\n",
+                )
+              }
+            end
           when '18.04'
             context 'on bionic' do
               let :params do
@@ -279,9 +290,8 @@ describe 'apache::mod::php', type: :class do
       end
 
       # all the following tests are for legacy php/apache versions. They don't work on modern ubuntu and redhat 8
-      next if (facts[:os]['release']['major'].to_i > 15 && facts[:os]['name'] == 'Ubuntu') ||
-              (facts[:os]['release']['major'].to_i >= 15 && facts[:os]['name'] == 'SLES')  ||
-              (facts[:os]['release']['major'].to_i >= 9 && facts[:os]['name'] == 'Debian') ||
+      next if (facts[:os]['release']['major'].to_i >= 15 && facts[:os]['name'] == 'SLES')  ||
+              (facts[:os]['family'] == 'Debian')                                           ||
               (facts[:os]['release']['major'].to_i >= 8 && (facts[:os]['name'] == 'RedHat' || facts[:os]['name'] == 'CentOS' ||
                                                             facts[:os]['name'] == 'Rocky'  || facts[:os]['name'] == 'AlmaLinux'))
 

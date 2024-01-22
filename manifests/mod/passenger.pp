@@ -1,5 +1,6 @@
 # @summary
 #   Installs `mod_pasenger`.
+#   > **Note**: This module support Passenger 4.0.0 and higher.
 #
 # @param manage_repo
 #   Toggle whether to manage yum repo if on a RedHat node.
@@ -23,6 +24,19 @@
 # @param mod_path
 #   Specifies a path to the module. Do not manually set this parameter without a special reason.
 #
+# @param passenger_admin_panel_url
+#   Specifies a Fuse Panel URL that the Passenger to to enable monitoring, administering, analysis and troubleshooting of this Passenger instance and apps.
+#
+# @param passenger_admin_panel_auth_type
+#   Specifies the authentication type to use for the Fuse Panel. Currently it support only basic type of authentiction.
+#   Ref : https://www.phusionpassenger.com/library/config/apache/reference/#passengeradminpanelauthtype
+#
+# @param passenger_admin_panel_username
+#   The username that Passenger should use when connecting to the Fuse Panel with basic authentication.
+#
+# @param passenger_admin_panel_password
+#   The password that Passenger should use when connecting to the Fuse Panel with basic authentication.
+#
 # @param passenger_allow_encoded_slashes
 #   Toggle whether URLs with encoded slashes (%2f) can be used (by default Apache does not support this).
 #
@@ -39,6 +53,9 @@
 #
 # @param passenger_app_group_name
 #   Sets the name of the application group that the current application should belong to.
+#
+# @param passenger_app_log_file
+#   File path to application specifile log file. By default passenger will write all application log messages to the Passenger log file.
 #
 # @param passenger_app_root
 #   Path to the application root which allows access independent from the DocumentRoot.
@@ -95,6 +112,9 @@
 #
 # @param passenger_enabled
 #   Toggles whether Passenger should be enabled for that particular context.
+#
+# @param passenger_dump_config_manifest
+#   Dumps the configuration manifest to the given file.
 #
 # @param passenger_error_override
 #   Toggles whether Apache will intercept and handle responses with HTTP status codes of 400 and higher. 
@@ -163,6 +183,10 @@
 #
 # @param passenger_max_requests
 #   The maximum number of requests an application process will process. 
+#
+# @param passenger_max_request_queue_time
+#   The maximum amount of time, in seconds, that a request may be queued before Passenger will return an error. 
+#   This option specifies the maximum time a request may spend in that queue. If a request in the queue reaches this specified limit, then Passenger will send a "504 Gateway Timeout" error for that request. 
 #
 # @param passenger_memory_limit
 #   The maximum amount of memory that an application process may use, in megabytes.
@@ -253,35 +277,8 @@
 # @param passenger_user_switching
 #   Toggles whether to attempt to enable user account sandboxing, also known as user switching.
 #
-# @param rack_auto_detect
-#   This option has been removed in version 4.0.0 as part of an optimization. You should use PassengerEnabled instead.
-#
-# @param rack_autodetect
-#   This option has been removed in version 4.0.0 as part of an optimization. You should use PassengerEnabled instead.
-#
-# @param rack_base_uri
-#   Deprecated in 3.0.0 in favor of PassengerBaseURI.
-#
 # @param rack_env
 #   Alias for PassengerAppEnv.
-#
-# @param rails_allow_mod_rewrite
-#   This option doesn't do anything anymore since version 4.0.0.
-#
-# @param rails_app_spawner_idle_time
-#   This option has been removed in version 4.0.0, and replaced with PassengerMaxPreloaderIdleTime.
-#
-# @param rails_auto_detect
-#   This option has been removed in version 4.0.0 as part of an optimization. You should use PassengerEnabled instead.
-#
-# @param rails_autodetect
-#   This option has been removed in version 4.0.0 as part of an optimization. You should use PassengerEnabled instead.
-#
-# @param rails_base_uri
-#   Deprecated in 3.0.0 in favor of PassengerBaseURI.
-#
-# @param rails_default_user
-#   Deprecated in 3.0.0 in favor of PassengerDefaultUser
 #
 # @param rails_env
 #   Alias for PassengerAppEnv.
@@ -289,18 +286,6 @@
 # @param rails_framework_spawner_idle_time
 #   This option is no longer available in version 4.0.0. There is no alternative because framework spawning has been removed 
 #   altogether. You should use smart spawning instead.
-#
-# @param rails_ruby
-#   Deprecated in 3.0.0 in favor of PassengerRuby.
-#
-# @param rails_spawn_method
-#   Deprecated in 3.0.0 in favor of PassengerSpawnMethod.
-#
-# @param rails_user_switching
-#   Deprecated in 3.0.0 in favor of PassengerUserSwitching.
-#
-# @param wsgi_auto_detect
-#   This option has been removed in version 4.0.0 as part of an optimization. You should use PassengerEnabled instead.
 #
 # @note 
 #   In Passenger source code you can strip out what are all the available options by looking in
@@ -329,6 +314,12 @@ class apache::mod::passenger (
   Optional[String] $mod_package                                                              = undef,
   Optional[String] $mod_package_ensure                                                       = undef,
   Optional[String] $mod_path                                                                 = undef,
+  Optional[Integer] $passenger_max_request_queue_time                                        = undef,
+  Optional[String] $passenger_admin_panel_url                                                = undef,
+  Optional[Enum['basic']] $passenger_admin_panel_auth_type                                   = undef,
+  Optional[String] $passenger_admin_panel_username                                           = undef,
+  Optional[String] $passenger_admin_panel_password                                           = undef,
+  Optional[String] $passenger_app_log_file                                                   = undef,
   Optional[Apache::OnOff] $passenger_allow_encoded_slashes                                   = undef,
   Optional[String] $passenger_anonymous_telemetry_proxy                                      = undef,
   Optional[String] $passenger_app_env                                                        = undef,
@@ -351,6 +342,7 @@ class apache::mod::passenger (
   Optional[Boolean] $passenger_disable_log_prefix                                            = undef,
   Optional[Apache::OnOff] $passenger_disable_security_update_check                           = undef,
   Optional[Apache::OnOff] $passenger_enabled                                                 = undef,
+  Optional[String] $passenger_dump_config_manifest                                           = undef,
   Optional[Apache::OnOff] $passenger_error_override                                          = undef,
   Optional[String] $passenger_file_descriptor_log_file                                       = undef,
   Optional[String] $passenger_fly_with                                                       = undef,
@@ -401,48 +393,15 @@ class apache::mod::passenger (
   Optional[String] $passenger_use_global_queue                                               = undef,
   Optional[String] $passenger_user                                                           = undef,
   Optional[Apache::OnOff] $passenger_user_switching                                          = undef,
-  Optional[String] $rack_auto_detect                                                         = undef,
-  Optional[String] $rack_autodetect                                                          = undef,
-  Optional[String] $rack_base_uri                                                            = undef,
   Optional[String] $rack_env                                                                 = undef,
-  Optional[String] $rails_allow_mod_rewrite                                                  = undef,
-  Optional[String] $rails_app_spawner_idle_time                                              = undef,
-  Optional[String] $rails_auto_detect                                                        = undef,
-  Optional[String] $rails_autodetect                                                         = undef,
-  Optional[String] $rails_base_uri                                                           = undef,
-  Optional[String] $rails_default_user                                                       = undef,
   Optional[String] $rails_env                                                                = undef,
   Optional[String] $rails_framework_spawner_idle_time                                        = undef,
-  Optional[String] $rails_ruby                                                               = undef,
-  Optional[String] $rails_spawn_method                                                       = undef,
-  Optional[String] $rails_user_switching                                                     = undef,
-  Optional[String] $wsgi_auto_detect                                                         = undef,
 ) inherits apache::params {
   include apache
   if $passenger_installed_version {
-    if $passenger_allow_encoded_slashes {
-      if (versioncmp($passenger_installed_version, '4.0.0') < 0) {
-        fail("Passenger config option :: passenger_allow_encoded_slashes is not introduced until version 4.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
     if $passenger_anonymous_telemetry_proxy {
       if (versioncmp($passenger_installed_version, '6.0.0') < 0) {
         fail("Passenger config option :: passenger_anonymous_telemetry_proxy is not introduced until version 6.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_app_env {
-      if (versioncmp($passenger_installed_version, '4.0.0') < 0) {
-        fail("Passenger config option :: passenger_app_env is not introduced until version 4.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_app_group_name {
-      if (versioncmp($passenger_installed_version, '4.0.0') < 0) {
-        fail("Passenger config option :: passenger_app_group_name is not introduced until version 4.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_app_root {
-      if (versioncmp($passenger_installed_version, '4.0.0') < 0) {
-        fail("Passenger config option :: passenger_app_root is not introduced until version 4.0.0 :: ${passenger_installed_version} is the version reported")
       }
     }
     if $passenger_app_type {
@@ -450,24 +409,9 @@ class apache::mod::passenger (
         fail("Passenger config option :: passenger_app_type is not introduced until version 4.0.25 :: ${passenger_installed_version} is the version reported")
       }
     }
-    if $passenger_base_uri {
-      if (versioncmp($passenger_installed_version, '4.0.0') < 0) {
-        fail("Passenger config option :: passenger_base_uri is not introduced until version 4.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_buffer_response {
-      if (versioncmp($passenger_installed_version, '4.0.0') < 0) {
-        fail("Passenger config option :: passenger_buffer_response is not introduced until version 4.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
     if $passenger_buffer_upload {
       if (versioncmp($passenger_installed_version, '4.0.26') < 0) {
         fail("Passenger config option :: passenger_buffer_upload is not introduced until version 4.0.26 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_concurrency_model {
-      if (versioncmp($passenger_installed_version, '4.0.0') < 0) {
-        fail("Passenger config option :: passenger_concurrency_model is not introduced until version 4.0.0 :: ${passenger_installed_version} is the version reported")
       }
     }
     if $passenger_data_buffer_dir {
@@ -478,26 +422,6 @@ class apache::mod::passenger (
     if $passenger_debug_log_file {
       if (versioncmp($passenger_installed_version, '5.0.5') > 0) {
         warning('DEPRECATED PASSENGER OPTION :: passenger_debug_log_file :: This option has been renamed in version 5.0.5 to PassengerLogFile.')
-      }
-    }
-    if $passenger_debugger {
-      if (versioncmp($passenger_installed_version, '3.0.0') < 0) {
-        fail("Passenger config option :: passenger_debugger is not introduced until version 3.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_default_group {
-      if (versioncmp($passenger_installed_version, '3.0.0') < 0) {
-        fail("Passenger config option :: passenger_default_group is not introduced until version 3.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_default_ruby {
-      if (versioncmp($passenger_installed_version, '4.0.0') < 0) {
-        fail("Passenger config option :: passenger_default_ruby is not introduced until version 4.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_default_user {
-      if (versioncmp($passenger_installed_version, '3.0.0') < 0) {
-        fail("Passenger config option :: passenger_default_user is not introduced until version 3.0.0 :: ${passenger_installed_version} is the version reported")
       }
     }
     if $passenger_disable_anonymous_telemetry {
@@ -513,11 +437,6 @@ class apache::mod::passenger (
     if $passenger_disable_security_update_check {
       if (versioncmp($passenger_installed_version, '5.1.0') < 0) {
         fail("Passenger config option :: passenger_disable_security_update_check is not introduced until version 5.1.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_enabled {
-      if (versioncmp($passenger_installed_version, '4.0.0') < 0) {
-        fail("Passenger config option :: passenger_enabled is not introduced until version 4.0.0 :: ${passenger_installed_version} is the version reported")
       }
     }
     if $passenger_error_override {
@@ -545,16 +464,6 @@ class apache::mod::passenger (
         fail("Passenger config option :: passenger_friendly_error_pages is not introduced until version 4.0.42 :: ${passenger_installed_version} is the version reported")
       }
     }
-    if $passenger_group {
-      if (versioncmp($passenger_installed_version, '4.0.0') < 0) {
-        fail("Passenger config option :: passenger_group is not introduced until version 4.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_high_performance {
-      if (versioncmp($passenger_installed_version, '2.0.0') < 0) {
-        fail("Passenger config option :: passenger_high_performance is not introduced until version 2.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
     if $passenger_instance_registry_dir {
       if (versioncmp($passenger_installed_version, '5.0.0') < 0) {
         fail("Passenger config option :: passenger_instance_registry_dir is not introduced until version 5.0.0 :: ${passenger_installed_version} is the version reported")
@@ -575,34 +484,9 @@ class apache::mod::passenger (
         fail("Passenger config option :: passenger_log_file is not introduced until version 5.0.5 :: ${passenger_installed_version} is the version reported")
       }
     }
-    if $passenger_log_level {
-      if (versioncmp($passenger_installed_version, '3.0.0') < 0) {
-        fail("Passenger config option :: passenger_log_level is not introduced until version 3.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
     if $passenger_lve_min_uid {
       if (versioncmp($passenger_installed_version, '5.0.28') < 0) {
         fail("Passenger config option :: passenger_lve_min_uid is not introduced until version 5.0.28 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_max_instances {
-      if (versioncmp($passenger_installed_version, '3.0.0') < 0) {
-        fail("Passenger config option :: passenger_max_instances is not introduced until version 3.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_max_instances_per_app {
-      if (versioncmp($passenger_installed_version, '3.0.0') < 0) {
-        fail("Passenger config option :: passenger_max_instances_per_app is not introduced until version 3.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_max_pool_size {
-      if (versioncmp($passenger_installed_version, '1.0.0') < 0) {
-        fail("Passenger config option :: passenger_max_pool_size is not introduced until version 1.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_max_preloader_idle_time {
-      if (versioncmp($passenger_installed_version, '4.0.0') < 0) {
-        fail("Passenger config option :: passenger_max_preloader_idle_time is not introduced until version 4.0.0 :: ${passenger_installed_version} is the version reported")
       }
     }
     if $passenger_max_request_queue_size {
@@ -610,29 +494,9 @@ class apache::mod::passenger (
         fail("Passenger config option :: passenger_max_request_queue_size is not introduced until version 4.0.15 :: ${passenger_installed_version} is the version reported")
       }
     }
-    if $passenger_max_request_time {
-      if (versioncmp($passenger_installed_version, '3.0.0') < 0) {
-        fail("Passenger config option :: passenger_max_request_time is not introduced until version 3.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_max_requests {
-      if (versioncmp($passenger_installed_version, '3.0.0') < 0) {
-        fail("Passenger config option :: passenger_max_requests is not introduced until version 3.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_memory_limit {
-      if (versioncmp($passenger_installed_version, '3.0.0') < 0) {
-        fail("Passenger config option :: passenger_memory_limit is not introduced until version 3.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
     if $passenger_meteor_app_settings {
       if (versioncmp($passenger_installed_version, '5.0.7') < 0) {
         fail("Passenger config option :: passenger_meteor_app_settings is not introduced until version 5.0.7 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_min_instances {
-      if (versioncmp($passenger_installed_version, '3.0.0') < 0) {
-        fail("Passenger config option :: passenger_min_instances is not introduced until version 3.0.0 :: ${passenger_installed_version} is the version reported")
       }
     }
     if $passenger_nodejs {
@@ -640,54 +504,9 @@ class apache::mod::passenger (
         fail("Passenger config option :: passenger_nodejs is not introduced until version 4.0.24 :: ${passenger_installed_version} is the version reported")
       }
     }
-    if $passenger_pool_idle_time {
-      if (versioncmp($passenger_installed_version, '1.0.0') < 0) {
-        fail("Passenger config option :: passenger_pool_idle_time is not introduced until version 1.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_pre_start {
-      if (versioncmp($passenger_installed_version, '3.0.0') < 0) {
-        fail("Passenger config option :: passenger_pre_start is not introduced until version 3.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_python {
-      if (versioncmp($passenger_installed_version, '4.0.0') < 0) {
-        fail("Passenger config option :: passenger_python is not introduced until version 4.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_resist_deployment_errors {
-      if (versioncmp($passenger_installed_version, '3.0.0') < 0) {
-        fail("Passenger config option :: passenger_resist_deployment_errors is not introduced until version 3.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_resolve_symlinks_in_document_root {
-      if (versioncmp($passenger_installed_version, '3.0.0') < 0) {
-        fail("Passenger config option :: passenger_resolve_symlinks_in_document_root is not introduced until version 3.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
     if $passenger_response_buffer_high_watermark {
       if (versioncmp($passenger_installed_version, '5.0.0') < 0) {
         fail("Passenger config option :: passenger_response_buffer_high_watermark is not introduced until version 5.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_restart_dir {
-      if (versioncmp($passenger_installed_version, '3.0.0') < 0) {
-        fail("Passenger config option :: passenger_restart_dir is not introduced until version 3.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_rolling_restarts {
-      if (versioncmp($passenger_installed_version, '3.0.0') < 0) {
-        fail("Passenger config option :: passenger_rolling_restarts is not introduced until version 3.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_root {
-      if (versioncmp($passenger_installed_version, '1.0.0') < 0) {
-        fail("Passenger config option :: passenger_root is not introduced until version 1.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_ruby {
-      if (versioncmp($passenger_installed_version, '4.0.0') < 0) {
-        fail("Passenger config option :: passenger_ruby is not introduced until version 4.0.0 :: ${passenger_installed_version} is the version reported")
       }
     }
     if $passenger_security_update_check_proxy {
@@ -710,11 +529,6 @@ class apache::mod::passenger (
         fail("Passenger config option :: passenger_spawn_dir is not introduced until version 6.0.3 :: ${passenger_installed_version} is the version reported")
       }
     }
-    if $passenger_spawn_method {
-      if (versioncmp($passenger_installed_version, '2.0.0') < 0) {
-        fail("Passenger config option :: passenger_spawn_method is not introduced until version 2.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
     if $passenger_start_timeout {
       if (versioncmp($passenger_installed_version, '4.0.15') < 0) {
         fail("Passenger config option :: passenger_start_timeout is not introduced until version 4.0.15 :: ${passenger_installed_version} is the version reported")
@@ -723,11 +537,6 @@ class apache::mod::passenger (
     if $passenger_startup_file {
       if (versioncmp($passenger_installed_version, '4.0.25') < 0) {
         fail("Passenger config option :: passenger_startup_file is not introduced until version 4.0.25 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $passenger_stat_throttle_rate {
-      if (versioncmp($passenger_installed_version, '2.2.0') < 0) {
-        fail("Passenger config option :: passenger_stat_throttle_rate is not introduced until version 2.2.0 :: ${passenger_installed_version} is the version reported")
       }
     }
     if $passenger_sticky_sessions {
@@ -745,97 +554,44 @@ class apache::mod::passenger (
         fail("Passenger config option :: passenger_sticky_sessions_cookie_attributes is not introduced until version 6.0.5 :: ${passenger_installed_version} is the version reported")
       }
     }
-    if $passenger_thread_count {
-      if (versioncmp($passenger_installed_version, '4.0.0') < 0) {
-        fail("Passenger config option :: passenger_thread_count is not introduced until version 4.0.0 :: ${passenger_installed_version} is the version reported")
+    if $passenger_max_request_queue_time {
+      if (versioncmp($passenger_installed_version, '5.1.12') < 0) {
+        fail("Passenger config option :: passenger_base_uri is not introduced until version 5.1.12 :: ${passenger_installed_version} is the version reported")
       }
     }
-    if $passenger_use_global_queue {
-      if (versioncmp($passenger_installed_version, '4.0.0') > 0) {
-        fail('REMOVED PASSENGER OPTION :: passenger_use_global_queue :: -- no message on the current passenger reference webpage -- ')
-      }
-      if (versioncmp($passenger_installed_version, '2.0.4') < 0) {
-        fail("Passenger config option :: passenger_use_global_queue is not introduced until version 2.0.4 :: ${passenger_installed_version} is the version reported")
+    if $passenger_admin_panel_url {
+      if (versioncmp($passenger_installed_version, '5.2.2') < 0) {
+        fail("Passenger config option :: passenger_admin_panel_url is not introduced until version 5.2.2 :: ${passenger_installed_version} is the version reported")
       }
     }
-    if $passenger_user {
-      if (versioncmp($passenger_installed_version, '4.0.0') < 0) {
-        fail("Passenger config option :: passenger_user is not introduced until version 4.0.0 :: ${passenger_installed_version} is the version reported")
+    if $passenger_admin_panel_auth_type {
+      if (versioncmp($passenger_installed_version, '5.2.2') < 0) {
+        fail("Passenger config option :: passenger_admin_panel_auth_type is not introduced until version 5.2.2 :: ${passenger_installed_version} is the version reported")
       }
     }
-    if $passenger_user_switching {
-      if (versioncmp($passenger_installed_version, '3.0.0') < 0) {
-        fail("Passenger config option :: passenger_user_switching is not introduced until version 3.0.0 :: ${passenger_installed_version} is the version reported")
+    if $passenger_admin_panel_username {
+      if (versioncmp($passenger_installed_version, '5.2.2') < 0) {
+        fail("Passenger config option :: passenger_admin_panel_username is not introduced until version 5.2.2 :: ${passenger_installed_version} is the version reported")
       }
     }
-    if ($rack_auto_detect or $rack_autodetect) {
-      if (versioncmp($passenger_installed_version, '4.0.0') > 0) {
-        fail('REMOVED PASSENGER OPTION :: rack_auto_detect ::  These options have been removed in version 4.0.0 as part of an optimization. You should use PassengerEnabled instead.')
+    if $passenger_admin_panel_password {
+      if (versioncmp($passenger_installed_version, '5.2.2') < 0) {
+        fail("Passenger config option :: passenger_admin_panel_password is not introduced until version 5.2.2 :: ${passenger_installed_version} is the version reported")
       }
     }
-    if $rack_base_uri {
-      if (versioncmp($passenger_installed_version, '3.0.0') > 0) {
-        warning('DEPRECATED PASSENGER OPTION :: rack_base_uri :: Deprecated in 3.0.0 in favor of PassengerBaseURI.')
+    if $passenger_dump_config_manifest {
+      if (versioncmp($passenger_installed_version, '5.2.2') < 0) {
+        fail("Passenger config option :: passenger_dump_config_manifest is not introduced until version 5.2.2 :: ${passenger_installed_version} is the version reported")
       }
     }
-    if $rack_env {
-      if (versioncmp($passenger_installed_version, '2.0.0') < 0) {
-        fail("Passenger config option :: rack_env is not introduced until version 2.0.0 :: ${passenger_installed_version} is the version reported")
+    if $passenger_app_log_file {
+      if (versioncmp($passenger_installed_version, '5.3.0') < 0) {
+        fail("Passenger config option :: passenger_app_log_file is not introduced until version 5.3.0 :: ${passenger_installed_version} is the version reported")
       }
     }
-    if $rails_allow_mod_rewrite {
-      if (versioncmp($passenger_installed_version, '4.0.0') > 0) {
-        warning("DEPRECATED PASSENGER OPTION :: rails_allow_mod_rewrite :: This option doesn't do anything anymore in since version 4.0.0.")
-      }
-    }
-    if $rails_app_spawner_idle_time {
-      if (versioncmp($passenger_installed_version, '4.0.0') > 0) {
-        fail('REMOVED PASSENGER OPTION :: rails_app_spawner_idle_time ::  This option has been removed in version 4.0.0, and replaced with PassengerMaxPreloaderIdleTime.')
-      }
-    }
-    if ($rails_auto_detect or $rails_autodetect) {
-      if (versioncmp($passenger_installed_version, '4.0.0') > 0) {
-        fail('REMOVED PASSENGER OPTION :: rails_auto_detect ::  These options have been removed in version 4.0.0 as part of an optimization. You should use PassengerEnabled instead.')
-      }
-    }
-    if $rails_base_uri {
-      if (versioncmp($passenger_installed_version, '3.0.0') > 0) {
-        warning('DEPRECATED PASSENGER OPTION :: rails_base_uri :: Deprecated in 3.0.0 in favor of PassengerBaseURI.')
-      }
-    }
-    if $rails_default_user {
-      if (versioncmp($passenger_installed_version, '3.0.0') > 0) {
-        warning('DEPRECATED PASSENGER OPTION :: rails_default_user :: Deprecated in 3.0.0 in favor of PassengerDefaultUser.')
-      }
-    }
-    if $rails_env {
-      if (versioncmp($passenger_installed_version, '2.0.0') < 0) {
-        fail("Passenger config option :: rails_env is not introduced until version 2.0.0 :: ${passenger_installed_version} is the version reported")
-      }
-    }
-    if $rails_framework_spawner_idle_time {
-      if (versioncmp($passenger_installed_version, '4.0.0') > 0) {
-        fail('REMOVED PASSENGER OPTION :: rails_framework_spawner_idle_time ::  This option is no longer available in version 4.0.0. There is no alternative because framework spawning has been removed altogether. You should use smart spawning instead.')
-      }
-    }
-    if $rails_ruby {
-      if (versioncmp($passenger_installed_version, '3.0.0') > 0) {
-        warning('DEPRECATED PASSENGER OPTION :: rails_ruby :: Deprecated in 3.0.0 in favor of PassengerRuby.')
-      }
-    }
-    if $rails_spawn_method {
-      if (versioncmp($passenger_installed_version, '3.0.0') > 0) {
-        warning('DEPRECATED PASSENGER OPTION :: rails_spawn_method :: Deprecated in 3.0.0 in favor of PassengerSpawnMethod.')
-      }
-    }
-    if $rails_user_switching {
-      if (versioncmp($passenger_installed_version, '3.0.0') > 0) {
-        warning('DEPRECATED PASSENGER OPTION :: rails_user_switching :: Deprecated in 3.0.0 in favor of PassengerUserSwitching.')
-      }
-    }
-    if $wsgi_auto_detect {
-      if (versioncmp($passenger_installed_version, '4.0.0') > 0) {
-        fail('REMOVED PASSENGER OPTION :: wsgi_auto_detect ::  These options have been removed in version 4.0.0 as part of an optimization. You should use PassengerEnabled instead.')
+    if $passenger_resist_deployment_errors {
+      if (versioncmp($passenger_installed_version, '5.2.0') > 0) {
+        fail('REMOVED PASSENGER OPTION :: passenger_resist_deployment_errors :: -- no message on the current passenger reference webpage -- ')
       }
     }
   }
@@ -960,29 +716,102 @@ class apache::mod::passenger (
   # - $passenger_sticky_sessions : since 4.0.45.
   # - $passenger_sticky_sessions_cookie_name : since 4.0.45.
   # - $passenger_thread_count : since 4.0.0.
-  # - $passenger_use_global_queue : since 2.0.4.Deprecated in 4.0.0.
   # - $passenger_user : since 4.0.0.
   # - $passenger_user_switching : since 3.0.0.
-  # - $rack_auto_detect : since unkown. Deprecated in 4.0.0.
-  # - $rack_base_uri : since unkown. Deprecated in 3.0.0.
-  # - $rack_env : since 2.0.0.
-  # - $rails_allow_mod_rewrite : since unkown. Deprecated in 4.0.0.
-  # - $rails_app_spawner_idle_time : since unkown. Deprecated in 4.0.0.
-  # - $rails_auto_detect : since unkown. Deprecated in 4.0.0.
-  # - $rails_base_uri : since unkown. Deprecated in 3.0.0.
-  # - $rails_default_user : since unkown. Deprecated in 3.0.0.
-  # - $rails_env : since 2.0.0.
-  # - $rails_framework_spawner_idle_time : since unkown. Deprecated in 4.0.0.
-  # - $rails_ruby : since unkown. Deprecated in 3.0.0.
-  # - $rails_spawn_method : since unkown. Deprecated in 3.0.0.
-  # - $rails_user_switching : since unkown. Deprecated in 3.0.0.
-  # - $wsgi_auto_detect : since unkown. Deprecated in 4.0.0.
-  # - $rails_autodetect : this options is only for backward compatiblity with older versions of this class
-  # - $rack_autodetect : this options is only for backward compatiblity with older versions of this class
+  # - $passenger_dump_config_manifest : since 5.2.2
+  # - $passenger_admin_panel_url : since 5.2.2
+  # - $passenger_admin_panel_auth_type : since 5.2.2
+  # - $passenger_admin_panel_username : since 5.2.2
+  # - $passenger_admin_panel_password : since 5.2.2
+  # - $passenger_app_log_file : since 5.3.0
+  # - $passenger_max_request_queue_time : since 5.1.12
+
+  $parameters = {
+    'passenger_admin_panel_url'                           => $passenger_admin_panel_url,
+    'passenger_admin_panel_auth_type'                     => $passenger_admin_panel_auth_type,
+    'passenger_admin_panel_username'                      => $passenger_admin_panel_username,
+    'passenger_admin_panel_password'                      => $passenger_admin_panel_password,
+    'passenger_allow_encoded_slashes'                     => $passenger_allow_encoded_slashes,
+    'passenger_anonymous_telemetry_proxy'                 => $passenger_anonymous_telemetry_proxy,
+    'passenger_app_env'                                   => $passenger_app_env,
+    'passenger_app_group_name'                            => $passenger_app_group_name,
+    'passenger_app_log_file'                              => $passenger_app_log_file,
+    'passenger_app_root'                                  => $passenger_app_root,
+    'passenger_app_type'                                  => $passenger_app_type,
+    'passenger_base_uri'                                  => $passenger_base_uri,
+    'passenger_buffer_response'                           => $passenger_buffer_response,
+    'passenger_buffer_upload'                             => $passenger_buffer_upload,
+    'passenger_concurrency_model'                         => $passenger_concurrency_model,
+    'passenger_data_buffer_dir'                           => $passenger_data_buffer_dir,
+    'passenger_debug_log_file'                            => $passenger_debug_log_file,
+    'passenger_debugger'                                  => $passenger_debugger,
+    'passenger_default_group'                             => $passenger_default_group,
+    'passenger_default_ruby'                              => $passenger_default_ruby,
+    'passenger_default_user'                              => $passenger_default_user,
+    'passenger_disable_anonymous_telemetry'               => $passenger_disable_anonymous_telemetry,
+    'passenger_disable_log_prefix'                        => $passenger_disable_log_prefix,
+    'passenger_disable_security_update_check'             => $passenger_disable_security_update_check,
+    'passenger_enabled'                                   => $passenger_enabled,
+    'passenger_error_override'                            => $passenger_error_override,
+    'passenger_file_descriptor_log_file'                  => $passenger_file_descriptor_log_file,
+    'passenger_fly_with'                                  => $passenger_fly_with,
+    'passenger_force_max_concurrent_requests_per_process' => $passenger_force_max_concurrent_requests_per_process,
+    'passenger_friendly_error_pages'                      => $passenger_friendly_error_pages,
+    'passenger_group'                                     => $passenger_group,
+    'passenger_high_performance'                          => $passenger_high_performance,
+    'passenger_instance_registry_dir'                     => $passenger_instance_registry_dir,
+    'passenger_load_shell_envvars'                        => $passenger_load_shell_envvars,
+    'passenger_preload_bundler'                           => $passenger_preload_bundler,
+    'passenger_log_file'                                  => $passenger_log_file,
+    'passenger_dump_config_manifest'                      => $passenger_dump_config_manifest,
+    'passenger_log_level'                                 => $passenger_log_level,
+    'passenger_lve_min_uid'                               => $passenger_lve_min_uid,
+    'passenger_max_instances'                             => $passenger_max_instances,
+    'passenger_max_instances_per_app'                     => $passenger_max_instances_per_app,
+    'passenger_max_pool_size'                             => $passenger_max_pool_size,
+    'passenger_max_preloader_idle_time'                   => $passenger_max_preloader_idle_time,
+    'passenger_max_request_queue_size'                    => $passenger_max_request_queue_size,
+    'passenger_max_request_queue_time'                    => $passenger_max_request_queue_time,
+    'passenger_max_request_time'                          => $passenger_max_request_time,
+    'passenger_max_requests'                              => $passenger_max_requests,
+    'passenger_memory_limit'                              => $passenger_memory_limit,
+    'passenger_meteor_app_settings'                       => $passenger_meteor_app_settings,
+    'passenger_min_instances'                             => $passenger_min_instances,
+    'passenger_nodejs'                                    => $passenger_nodejs,
+    'passenger_pool_idle_time'                            => $passenger_pool_idle_time,
+    'passenger_pre_start'                                 => $passenger_pre_start,
+    'passenger_python'                                    => $passenger_python,
+    'passenger_resist_deployment_errors'                  => $passenger_resist_deployment_errors,
+    'passenger_resolve_symlinks_in_document_root'         => $passenger_resolve_symlinks_in_document_root,
+    'passenger_response_buffer_high_watermark'            => $passenger_response_buffer_high_watermark,
+    'passenger_restart_dir'                               => $passenger_restart_dir,
+    'passenger_rolling_restarts'                          => $passenger_rolling_restarts,
+    'passenger_root'                                      => $passenger_root,
+    'passenger_ruby'                                      => $passenger_ruby,
+    'passenger_security_update_check_proxy'               => $passenger_security_update_check_proxy,
+    'passenger_show_version_in_header'                    => $passenger_show_version_in_header,
+    'passenger_socket_backlog'                            => $passenger_socket_backlog,
+    'passenger_spawn_dir'                                 => $passenger_spawn_dir,
+    'passenger_spawn_method'                              => $passenger_spawn_method,
+    'passenger_start_timeout'                             => $passenger_start_timeout,
+    'passenger_startup_file'                              => $passenger_startup_file,
+    'passenger_stat_throttle_rate'                        => $passenger_stat_throttle_rate,
+    'passenger_sticky_sessions'                           => $passenger_sticky_sessions,
+    'passenger_sticky_sessions_cookie_name'               => $passenger_sticky_sessions_cookie_name,
+    'passenger_sticky_sessions_cookie_attributes'         => $passenger_sticky_sessions_cookie_attributes,
+    'passenger_thread_count'                              => $passenger_thread_count,
+    'passenger_use_global_queue'                          => $passenger_use_global_queue,
+    'passenger_user'                                      => $passenger_user,
+    'passenger_user_switching'                            => $passenger_user_switching,
+    'rack_env'                                            => $rack_env,
+    'rails_env'                                           => $rails_env,
+    'rails_framework_spawner_idle_time'                   => $rails_framework_spawner_idle_time,
+  }
+
   file { 'passenger.conf':
     ensure  => file,
     path    => "${apache::mod_dir}/${passenger_conf_file}",
-    content => template('apache/mod/passenger.conf.erb'),
+    content => epp('apache/mod/passenger.conf.epp', $parameters),
     require => Exec["mkdir ${apache::mod_dir}"],
     before  => File[$apache::mod_dir],
     notify  => Class['apache::service'],
