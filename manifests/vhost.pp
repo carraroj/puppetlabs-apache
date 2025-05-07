@@ -238,6 +238,9 @@
 # @param ensure
 #   Specifies if the virtual host is present or absent.<br />
 #
+# @param show_diff
+#   Specifies whether to set the show_diff parameter for the file resource.
+#
 # @param fallbackresource
 #   Sets the [FallbackResource](https://httpd.apache.org/docs/current/mod/mod_dir.html#fallbackresource) 
 #   directive, which specifies an action to take for any URL that doesn't map to anything in 
@@ -1702,6 +1705,11 @@
 # @param userdir
 #   Instances of apache::mod::userdir
 #
+# @param proxy_protocol
+#   Enable or disable PROXY protocol handling
+#
+# @param proxy_protocol_exceptions
+#   Disable processing of PROXY header for certain hosts or networks
 define apache::vhost (
   Variant[Stdlib::Absolutepath, Boolean] $docroot,
   Boolean $manage_docroot                                                             = true,
@@ -1836,6 +1844,7 @@ define apache::vhost (
   Variant[Array[String], String] $setenvifnocase                                      = [],
   Variant[Array[String], String] $block                                               = [],
   Enum['absent', 'present'] $ensure                                                   = 'present',
+  Boolean $show_diff                                                                  = true,
   Optional[String] $wsgi_application_group                                            = undef,
   Optional[Variant[String, Hash]] $wsgi_daemon_process                                = undef,
   Optional[Hash] $wsgi_daemon_process_options                                         = undef,
@@ -1962,6 +1971,8 @@ define apache::vhost (
   Apache::OIDCSettings $oidc_settings                                                 = {},
   Optional[Variant[Boolean, String]] $mdomain                                         = undef,
   Optional[Variant[String[1], Array[String[1]]]] $userdir                             = undef,
+  Optional[Boolean] $proxy_protocol                                                   = undef,
+  Array[Stdlib::Host] $proxy_protocol_exceptions                                      = [],
 ) {
   # The base class must be included first because it is used by parameter defaults
   if ! defined(Class['apache']) {
@@ -2195,14 +2206,15 @@ define apache::vhost (
   }
 
   concat { "${priority_real}${filename}.conf":
-    ensure  => $ensure,
-    path    => "${apache::vhost_dir}/${priority_real}${filename}.conf",
-    owner   => 'root',
-    group   => $apache::params::root_group,
-    mode    => $apache::file_mode,
-    order   => 'numeric',
-    require => Package['httpd'],
-    notify  => Class['apache::service'],
+    ensure    => $ensure,
+    path      => "${apache::vhost_dir}/${priority_real}${filename}.conf",
+    owner     => 'root',
+    group     => $apache::params::root_group,
+    mode      => $apache::file_mode,
+    show_diff => $show_diff,
+    order     => 'numeric',
+    require   => Package['httpd'],
+    notify    => Class['apache::service'],
   }
   # NOTE(pabelanger): This code is duplicated in ::apache::vhost::custom and
   # needs to be converted into something generic.
@@ -2346,7 +2358,7 @@ define apache::vhost (
         }
       }
 
-      if 'request_headers' in $directory {
+      if 'request_headers' in $directory or 'headers' in $directory {
         include apache::mod::headers
       }
 
@@ -2947,6 +2959,21 @@ define apache::vhost (
       target  => "${priority_real}${filename}.conf",
       order   => 360,
       content => "  UseCanonicalName ${use_canonical_name}\n",
+    }
+  }
+
+  if $proxy_protocol != undef {
+    include apache::mod::remoteip
+
+    $proxy_protocol_params = {
+      proxy_protocol            => $proxy_protocol,
+      proxy_protocol_exceptions => $proxy_protocol_exceptions,
+    }
+
+    concat::fragment { "${name}-proxy_protocol":
+      target  => "${priority_real}${filename}.conf",
+      order   => 400,
+      content => epp('apache/vhost/_proxy_protocol.epp', $proxy_protocol_params),
     }
   }
 

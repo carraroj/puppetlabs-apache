@@ -202,6 +202,7 @@ class apache::params inherits apache::version {
       'authnz_pam'            => 'mod_authnz_pam',
       'fcgid'                 => 'mod_fcgid',
       'geoip'                 => 'mod_geoip',
+      'http2'                 => 'mod_http2',
       'intercept_form_submit' => 'mod_intercept_form_submit',
       'ldap'                  => 'mod_ldap',
       'lookup_identity'       => 'mod_lookup_identity',
@@ -470,8 +471,8 @@ class apache::params inherits apache::version {
     $keepalive              = 'On'
     $keepalive_timeout      = 15
     $max_keepalive_requests = 100
-    $mime_support_package = 'mime-support'
     $mime_types_config    = '/etc/mime.types'
+    $mime_support_package = undef
     $docroot              = '/var/www/html'
     $cas_cookie_path      = '/var/cache/apache2/mod_auth_cas/'
     $mellon_lock_file     = undef

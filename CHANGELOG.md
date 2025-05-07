@@ -5,6 +5,69 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org).
 
+## [v12.3.1](https://github.com/puppetlabs/puppetlabs-apache/tree/v12.3.1) - 2025-03-31
+
+[Full Changelog](https://github.com/puppetlabs/puppetlabs-apache/compare/v12.3.0...v12.3.1)
+
+### Fixed
+
+- Install mod_http2 on EL if required [#2593](https://github.com/puppetlabs/puppetlabs-apache/pull/2593) ([ekohl](https://github.com/ekohl))
+
+## [v12.3.0](https://github.com/puppetlabs/puppetlabs-apache/tree/v12.3.0) - 2025-03-05
+
+[Full Changelog](https://github.com/puppetlabs/puppetlabs-apache/compare/v12.2.0...v12.3.0)
+
+### Added
+
+- Allow configuring RemoteIPProxyProtocol at VHost level [#2582](https://github.com/puppetlabs/puppetlabs-apache/pull/2582) ([smortex](https://github.com/smortex))
+- (CAT-2100) Add Debian 12 support [#2572](https://github.com/puppetlabs/puppetlabs-apache/pull/2572) ([shubhamshinde360](https://github.com/shubhamshinde360))
+- Feature: Allow to set the verbosity of the debug [#2523](https://github.com/puppetlabs/puppetlabs-apache/pull/2523) ([JGodin-C2C](https://github.com/JGodin-C2C))
+
+### Fixed
+
+- (CAT-2158) Upgrade rexml to address CVE-2024-49761 [#2579](https://github.com/puppetlabs/puppetlabs-apache/pull/2579) ([amitkarsale](https://github.com/amitkarsale))
+- Update types/oidcsettings UserInfoRefreshInterval to allow Integers again [#2578](https://github.com/puppetlabs/puppetlabs-apache/pull/2578) ([gcoxmoz](https://github.com/gcoxmoz))
+
+### Other
+
+- Fix mod_headers load for headers in directory #2590 [#2591](https://github.com/puppetlabs/puppetlabs-apache/pull/2591) ([uoe-pjackson](https://github.com/uoe-pjackson))
+- Adding ModSecurity parameter for audit log format. [#2583](https://github.com/puppetlabs/puppetlabs-apache/pull/2583) ([Tamerz](https://github.com/Tamerz))
+
+## [v12.2.0](https://github.com/puppetlabs/puppetlabs-apache/tree/v12.2.0) - 2024-10-23
+
+[Full Changelog](https://github.com/puppetlabs/puppetlabs-apache/compare/v12.1.0...v12.2.0)
+
+### Added
+
+- Update config parameters to match latest OIDC release and fix typos. … [#2569](https://github.com/puppetlabs/puppetlabs-apache/pull/2569) ([uoe-pjackson](https://github.com/uoe-pjackson))
+- add XForwardedHeaders for oidc_settings [#2541](https://github.com/puppetlabs/puppetlabs-apache/pull/2541) ([trefzer](https://github.com/trefzer))
+- Added cache_disk [#2521](https://github.com/puppetlabs/puppetlabs-apache/pull/2521) ([dploeger](https://github.com/dploeger))
+
+### Fixed
+
+- Fix apache2-mod_php7 not found for SLES-15 [#2568](https://github.com/puppetlabs/puppetlabs-apache/pull/2568) ([Harvey2504](https://github.com/Harvey2504))
+- Add missing brackets for function call [#2540](https://github.com/puppetlabs/puppetlabs-apache/pull/2540) ([gerlingsm](https://github.com/gerlingsm))
+
+## [v12.1.0](https://github.com/puppetlabs/puppetlabs-apache/tree/v12.1.0) - 2024-04-03
+
+[Full Changelog](https://github.com/puppetlabs/puppetlabs-apache/compare/v12.0.3...v12.1.0)
+
+### Added
+
+- vhost: Allow customizing show_diff [#2536](https://github.com/puppetlabs/puppetlabs-apache/pull/2536) ([kajinamit](https://github.com/kajinamit))
+
+### Fixed
+
+- Stop managing mime support package on Debian [#2526](https://github.com/puppetlabs/puppetlabs-apache/pull/2526) ([jcharaoui](https://github.com/jcharaoui))
+
+## [v12.0.3](https://github.com/puppetlabs/puppetlabs-apache/tree/v12.0.3) - 2024-03-02
+
+[Full Changelog](https://github.com/puppetlabs/puppetlabs-apache/compare/v12.0.2...v12.0.3)
+
+### Fixed
+
+- Fix `mod_auth_openidc` parameters [#2525](https://github.com/puppetlabs/puppetlabs-apache/pull/2525) ([smortex](https://github.com/smortex))
+
 ## [v12.0.2](https://github.com/puppetlabs/puppetlabs-apache/tree/v12.0.2) - 2024-01-10
 
 [Full Changelog](https://github.com/puppetlabs/puppetlabs-apache/compare/v12.0.1...v12.0.2)
@@ -27,6 +90,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 [Full Changelog](https://github.com/puppetlabs/puppetlabs-apache/compare/v11.1.0...v12.0.0)
 
 ### Changed
+
 - Drop EoL Debian 9 and older code [#2479](https://github.com/puppetlabs/puppetlabs-apache/pull/2479) ([bastelfreak](https://github.com/bastelfreak))
 
 ### Added
@@ -55,6 +119,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 [Full Changelog](https://github.com/puppetlabs/puppetlabs-apache/compare/v10.1.1...v11.0.0)
 
 ### Changed
+
 - (CAT-1449) - Remove deprecated parameters for scriptaliases & passenger [#2470](https://github.com/puppetlabs/puppetlabs-apache/pull/2470) ([Ramesh7](https://github.com/Ramesh7))
 - Remove deprecated classes [#2466](https://github.com/puppetlabs/puppetlabs-apache/pull/2466) ([ekohl](https://github.com/ekohl))
 - Remove deprecated parameters from mod::userdir [#2465](https://github.com/puppetlabs/puppetlabs-apache/pull/2465) ([ekohl](https://github.com/ekohl))
@@ -68,7 +133,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 - (CAT-1283) - Enable forensic module [#2442](https://github.com/puppetlabs/puppetlabs-apache/pull/2442) ([Ramesh7](https://github.com/Ramesh7))
 - (CAT-1281) - Support to add cipher with respective ssl protocol [#2440](https://github.com/puppetlabs/puppetlabs-apache/pull/2440) ([Ramesh7](https://github.com/Ramesh7))
 - feat: add Debian12 Compability [#2439](https://github.com/puppetlabs/puppetlabs-apache/pull/2439) ([Robnarok](https://github.com/Robnarok))
-- Add MellonSetEnv support [#2423](https://github.com/puppetlabs/puppetlabs-apache/pull/2423) ([ic248](https://github.com/ic248))
+- Add MellonSetEnv support [#2423](https://github.com/puppetlabs/puppetlabs-apache/pull/2423) ([](https://github.com/))
 - Add the missing mod_authnz_ldap parameters [#2404](https://github.com/puppetlabs/puppetlabs-apache/pull/2404) ([chutzimir](https://github.com/chutzimir))
 
 ### Fixed
@@ -113,6 +178,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 [Full Changelog](https://github.com/puppetlabs/puppetlabs-apache/compare/v9.1.3...v10.0.0)
 
 ### Changed
+
 - (CONT-772) Puppet 8 support / Drop Puppet 6 [#2405](https://github.com/puppetlabs/puppetlabs-apache/pull/2405) ([LukasAud](https://github.com/LukasAud))
 
 ## [v9.1.3](https://github.com/puppetlabs/puppetlabs-apache/tree/v9.1.3) - 2023-04-20
@@ -172,6 +238,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 [Full Changelog](https://github.com/puppetlabs/puppetlabs-apache/compare/v8.6.0...v9.0.0)
 
 ### Changed
+
 - (GH-2291) Further refine types [#2359](https://github.com/puppetlabs/puppetlabs-apache/pull/2359) ([david22swan](https://github.com/david22swan))
 - Drop deprecated a2mod type/providers [#2350](https://github.com/puppetlabs/puppetlabs-apache/pull/2350) ([bastelfreak](https://github.com/bastelfreak))
 - Drop Apache 2.2 support [#2329](https://github.com/puppetlabs/puppetlabs-apache/pull/2329) ([ekohl](https://github.com/ekohl))
@@ -279,6 +346,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 [Full Changelog](https://github.com/puppetlabs/puppetlabs-apache/compare/v7.0.0...v8.0.0)
 
 ### Changed
+
 - Drop mod_fastcgi support [#2267](https://github.com/puppetlabs/puppetlabs-apache/pull/2267) ([ekohl](https://github.com/ekohl))
 - Drop suphp support [#2263](https://github.com/puppetlabs/puppetlabs-apache/pull/2263) ([ekohl](https://github.com/ekohl))
 - Use a stricter data type on apache::vhost::aliases [#2253](https://github.com/puppetlabs/puppetlabs-apache/pull/2253) ([ekohl](https://github.com/ekohl))
@@ -326,6 +394,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 [Full Changelog](https://github.com/puppetlabs/puppetlabs-apache/compare/v6.5.1...v7.0.0)
 
 ### Changed
+
 - Drop Debian < 8 and Ubuntu < 14.04 code [#2189](https://github.com/puppetlabs/puppetlabs-apache/pull/2189) ([ekohl](https://github.com/ekohl))
 - Drop support and compatibility for Debian < 9 and Ubuntu < 16.04 [#2123](https://github.com/puppetlabs/puppetlabs-apache/pull/2123) ([ekohl](https://github.com/ekohl))
 
@@ -423,6 +492,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 [Full Changelog](https://github.com/puppetlabs/puppetlabs-apache/compare/v5.10.0...v6.0.0)
 
 ### Changed
+
 - pdksync - (MAINT) Remove SLES 11 support [#2132](https://github.com/puppetlabs/puppetlabs-apache/pull/2132) ([sanfrancrisko](https://github.com/sanfrancrisko))
 - pdksync - Remove Puppet 5 from testing and bump minimal version to 6.0.0 [#2125](https://github.com/puppetlabs/puppetlabs-apache/pull/2125) ([carabasdaniel](https://github.com/carabasdaniel))
 
@@ -602,6 +672,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 [Full Changelog](https://github.com/puppetlabs/puppetlabs-apache/compare/4.1.0...v5.0.0)
 
 ### Changed
+
 - pdksync - (MODULES-8444) - Raise lower Puppet bound [#1908](https://github.com/puppetlabs/puppetlabs-apache/pull/1908) ([david22swan](https://github.com/david22swan))
 
 ### Added
@@ -611,7 +682,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 
 ### Fixed
 
-- (MODULES-9014) Improve SSLSessionTickets handling [#1923](https://github.com/puppetlabs/puppetlabs-apache/pull/1923) ([FredericLespez](https://github.com/FredericLespez))
+- (MODULES-9014) Improve SSLSessionTickets handling [#1923](https://github.com/puppetlabs/puppetlabs-apache/pull/1923) ([FredL69](https://github.com/FredL69))
 - (MODULES-8931) Fix stahnma/epel failures [#1914](https://github.com/puppetlabs/puppetlabs-apache/pull/1914) ([eimlav](https://github.com/eimlav))
 - Fix wsgi_daemon_process to support hash data type [#1884](https://github.com/puppetlabs/puppetlabs-apache/pull/1884) ([mdechiaro](https://github.com/mdechiaro))
 
@@ -640,6 +711,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 [Full Changelog](https://github.com/puppetlabs/puppetlabs-apache/compare/3.5.0...4.0.0)
 
 ### Changed
+
 - default server_tokens to prod - more secure default [#1746](https://github.com/puppetlabs/puppetlabs-apache/pull/1746) ([juju4](https://github.com/juju4))
 
 ### Added
@@ -789,6 +861,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 [Full Changelog](https://github.com/puppetlabs/puppetlabs-apache/compare/1.11.0...2.0.0)
 
 ### Changed
+
 - MODULES-4824: Update the version compatibility to >= 4.7.0 < 5.0.0 [#1628](https://github.com/puppetlabs/puppetlabs-apache/pull/1628) ([angrox](https://github.com/angrox))
 - Migrate to puppet4 datatypes [#1621](https://github.com/puppetlabs/puppetlabs-apache/pull/1621) ([bastelfreak](https://github.com/bastelfreak))
 - Set default keepalive to On [#1434](https://github.com/puppetlabs/puppetlabs-apache/pull/1434) ([sathieu](https://github.com/sathieu))
@@ -1066,7 +1139,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 ### Added
 
 - Add support for changing mod_nss listen port (vol 2) [#1260](https://github.com/puppetlabs/puppetlabs-apache/pull/1260) ([rexcze-zz](https://github.com/rexcze-zz))
-- (MODULES-2811) Add missing helper lines to spec files [#1256](https://github.com/puppetlabs/puppetlabs-apache/pull/1256) ([alexharv074](https://github.com/alexharv074))
+- (MODULES-2811) Add missing helper lines to spec files [#1256](https://github.com/puppetlabs/puppetlabs-apache/pull/1256) ([alex-harvey-z3q](https://github.com/alex-harvey-z3q))
 - Add missing parameters in mod_auth_kerb [#1255](https://github.com/puppetlabs/puppetlabs-apache/pull/1255) ([olivierHa](https://github.com/olivierHa))
 - (MODULES-2764) Enclose IPv6 addresses in square brackets [#1248](https://github.com/puppetlabs/puppetlabs-apache/pull/1248) ([Benedikt1992](https://github.com/Benedikt1992))
 - (MODULES-2757) Adding if around ServerName in template [#1237](https://github.com/puppetlabs/puppetlabs-apache/pull/1237) ([damonconway](https://github.com/damonconway))
@@ -1098,8 +1171,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 
 ### Fixed
 
-- (MODULES-2813) Fix deprecation warning in spec_helper.rb [#1258](https://github.com/puppetlabs/puppetlabs-apache/pull/1258) ([alexharv074](https://github.com/alexharv074))
-- (MODULES-2812) Fix deprecation warning in service_spec.rb [#1257](https://github.com/puppetlabs/puppetlabs-apache/pull/1257) ([alexharv074](https://github.com/alexharv074))
+- (MODULES-2813) Fix deprecation warning in spec_helper.rb [#1258](https://github.com/puppetlabs/puppetlabs-apache/pull/1258) ([alex-harvey-z3q](https://github.com/alex-harvey-z3q))
+- (MODULES-2812) Fix deprecation warning in service_spec.rb [#1257](https://github.com/puppetlabs/puppetlabs-apache/pull/1257) ([alex-harvey-z3q](https://github.com/alex-harvey-z3q))
 - Fix typo about dynamic AddHandler/AddType [#1254](https://github.com/puppetlabs/puppetlabs-apache/pull/1254) ([olivierHa](https://github.com/olivierHa))
 - reduce constraints on regex to fix pe tests [#1231](https://github.com/puppetlabs/puppetlabs-apache/pull/1231) ([tphoney](https://github.com/tphoney))
 - Fix ordering issue with conf_file and ports_file [#1230](https://github.com/puppetlabs/puppetlabs-apache/pull/1230) ([MasonM](https://github.com/MasonM))
@@ -1434,6 +1507,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 [Full Changelog](https://github.com/puppetlabs/puppetlabs-apache/compare/0.11.0...1.0.0)
 
 ### Changed
+
 - Metadata [#661](https://github.com/puppetlabs/puppetlabs-apache/pull/661) ([apenney](https://github.com/apenney))
 - Apache2.4 support [#552](https://github.com/puppetlabs/puppetlabs-apache/pull/552) ([scottasmith](https://github.com/scottasmith))
 
@@ -1647,6 +1721,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 [Full Changelog](https://github.com/puppetlabs/puppetlabs-apache/compare/0.6.0...0.7.0)
 
 ### Changed
+
 - Refactor module [#182](https://github.com/puppetlabs/puppetlabs-apache/pull/182) ([hunner](https://github.com/hunner))
 
 ### Added

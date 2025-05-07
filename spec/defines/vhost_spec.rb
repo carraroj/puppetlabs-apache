@@ -139,7 +139,8 @@ describe 'apache::vhost', type: :define do
                   {
                     'enforce' => 'any',
                     'requires' => ['any-valid1', 'any-valid2']
-                  }
+                  },
+                  'enable_sendfile' => 'On',
                 },
                 {
                   'path' => '*',
@@ -315,6 +316,24 @@ describe 'apache::vhost', type: :define do
                   'mellon_saml_response_dump' => 'Off',
                   'mellon_cond' => ['isMemberOf "cn=example-access,ou=Groups,o=example,o=com" [MAP]'],
                   'mellon_session_length' => '300'
+                },
+                {
+                  'path' => '/secure',
+                  'provider' => 'location',
+                  'auth_type' => 'Basic',
+                  'authz_core' => {
+                    'require_all' => {
+                      'require_any' => {
+                        'require' => ['user superadmin'],
+                        'require_all' => {
+                          'require' => ['group admins', 'ldap-group "cn=Administrators,o=Airius"'],
+                        },
+                      },
+                      'require_none' => {
+                        'require' => ['group temps', 'ldap-group "cn=Temporary Employees,o=Airius"']
+                      }
+                    }
+                  }
                 },
               ],
               'error_log' => false,
@@ -532,7 +551,9 @@ describe 'apache::vhost', type: :define do
                                    'ClientSecret' => 'aae053a9-4abf-4824-8956-e94b2af335c8',
                                    'CryptoPassphrase' => '4ad1bb46-9979-450e-ae58-c696967df3cd' },
               'mdomain' => 'example.com example.net auto',
-              'userdir' => 'disabled'
+              'userdir' => 'disabled',
+              'proxy_protocol' => true,
+              'proxy_protocol_exceptions' => ['127.0.0.1', '10.0.0.0/8'],
             }
           end
 
@@ -589,6 +610,7 @@ describe 'apache::vhost', type: :define do
           it {
             expect(subject).to contain_concat('30-rspec.example.com.conf').with('owner' => 'root',
                                                                                 'mode' => '0644',
+                                                                                'show_diff' => true,
                                                                                 'require' => 'Package[httpd]',
                                                                                 'notify' => 'Class[Apache::Service]')
           }
@@ -629,6 +651,7 @@ describe 'apache::vhost', type: :define do
               .with_content(%r{^\s+Require valid-user$})
               .with_content(%r{^\s+Require all denied$})
               .with_content(%r{^\s+Require all granted$})
+              .with_content(%r{^\s+Require user superadmin$})
               .with_content(%r{^\s+<RequireAll>$})
               .with_content(%r{^\s+</RequireAll>$})
               .with_content(%r{^\s+Require all-valid1$})
@@ -641,6 +664,7 @@ describe 'apache::vhost', type: :define do
               .with_content(%r{^\s+</RequireAny>$})
               .with_content(%r{^\s+Require any-valid1$})
               .with_content(%r{^\s+Require any-valid2$})
+              .with_content(%r{^\s+EnableSendfile On$})
               .with_content(%r{^\s+LDAPReferrals off$})
               .with_content(%r{^\s+ProxyPass http://backend-b/ retry=0 timeout=5 noquery interpolate$})
               .with_content(%r{^\s+ProxyPassMatch http://backend-b/ retry=0 timeout=5 noquery interpolate$})
@@ -945,6 +969,13 @@ describe 'apache::vhost', type: :define do
             expect(subject).to contain_concat__fragment('rspec.example.com-apache-header').with(
               content: %r{^MDomain example\.com example\.net auto$},
             )
+          }
+
+          it {
+            expect(subject).to contain_concat__fragment('rspec.example.com-proxy_protocol')
+              .with_content(%r{^\s+RemoteIPProxyProtocol On$})
+              .with_content(%r{^\s+RemoteIPProxyProtocolExceptions 127\.0\.0\.1$})
+              .with_content(%r{^\s+RemoteIPProxyProtocolExceptions 10\.0\.0\.0/8$})
           }
         end
 
@@ -1527,6 +1558,7 @@ describe 'apache::vhost', type: :define do
               'error_log_pipe' => '/dev/null',
               'docroot' => '/var/www/foo',
               'ensure' => 'absent',
+              'show_diff' => false,
               'manage_docroot' => true,
               'logroot' => '/tmp/logroot',
               'logroot_ensure' => 'absent'
@@ -1556,7 +1588,8 @@ describe 'apache::vhost', type: :define do
           }
 
           it {
-            expect(subject).to contain_concat('25-rspec.example.com.conf').with('ensure' => 'absent')
+            expect(subject).to contain_concat('25-rspec.example.com.conf').with('ensure' => 'absent',
+                                                                                'show_diff' => false)
           }
 
           it { is_expected.to contain_concat__fragment('rspec.example.com-apache-header') }
